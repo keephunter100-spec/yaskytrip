@@ -13,6 +13,26 @@ import { Plane, Hotel as HotelIcon, Briefcase, Trash2, ShieldCheck, Sparkles, Ar
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
+  // Lock / Maintenance Screen State
+  const [isLocked, setIsLocked] = useState(() => {
+    return sessionStorage.getItem('yaskytrip_unlocked') !== 'true';
+  });
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput.trim() === 'yaskytrip') {
+      sessionStorage.setItem('yaskytrip_unlocked', 'true');
+      setIsLocked(false);
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+      // Automatically reset error after 2 seconds
+      setTimeout(() => setPasswordError(false), 2000);
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings'>('flights');
   
   // Set default query to Seoul -> Tokyo today
@@ -225,6 +245,82 @@ export default function App() {
       saveBookings(updated);
     }
   };
+
+  if (isLocked) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans" id="lock-screen-root">
+        {/* Decorative background elements */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+        
+        <div className="w-full max-w-md relative z-10" id="lock-card">
+          <div className="bg-slate-800/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl text-center space-y-6">
+            
+            {/* Header/Brand Icon */}
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center border border-blue-500/30">
+                  <Plane className="w-8 h-8 text-blue-400 animate-pulse" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500/20 rounded-full flex items-center justify-center border border-emerald-500/30">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                </div>
+              </div>
+            </div>
+
+            {/* Typography */}
+            <div className="space-y-2">
+              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                <Sparkles className="w-3 h-3 mr-1" />
+                SYSTEM LOCK
+              </span>
+              <h1 className="text-2xl font-black text-white tracking-tight">
+                yaskytrip 서비스 준비 중
+              </h1>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                현재 웹사이트 개편 및 시스템 점검이 진행 중입니다.<br />
+                더욱 안정적이고 스마트한 여행 검색 서비스로 곧 돌아오겠습니다!
+              </p>
+            </div>
+
+            {/* Access Code Form */}
+            <form onSubmit={handleUnlock} className="space-y-4 pt-2">
+              <div className="space-y-1.5 text-left">
+                <label className="text-xs font-semibold text-slate-300 ml-1">
+                  관리자 접속 코드
+                </label>
+                <input
+                  type="password"
+                  placeholder="접속 코드를 입력하세요"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-center transition-all"
+                />
+              </div>
+
+              {passwordError && (
+                <div className="text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 py-2 rounded-lg text-center">
+                  올바르지 않은 접속 코드입니다. 다시 입력해 주세요.
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center space-x-2"
+              >
+                <span>관리자 미리보기</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </form>
+
+            <div className="text-[10px] text-slate-500 pt-2 border-t border-slate-700/30">
+              © 2026 yaskytrip. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-500/10 selection:text-blue-600" id="app-root">
