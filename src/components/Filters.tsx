@@ -1,6 +1,6 @@
 import React from 'react';
 import { SlidersHorizontal, DollarSign, Clock, ShieldCheck, Star, RefreshCw } from 'lucide-react';
-import { FilterOptions } from '../types';
+import { FilterOptions, formatPrice } from '../types';
 
 interface FiltersProps {
   type: 'flights' | 'hotels';
@@ -8,9 +8,10 @@ interface FiltersProps {
   setFilters: React.Dispatch<React.SetStateAction<FilterOptions>>;
   availableAirlines?: { code: string; name: string }[];
   maxPriceLimit: number;
+  currency?: 'USD' | 'KRW';
 }
 
-export default function Filters({ type, filters, setFilters, availableAirlines = [], maxPriceLimit }: FiltersProps) {
+export default function Filters({ type, filters, setFilters, availableAirlines = [], maxPriceLimit, currency = 'USD' }: FiltersProps) {
   
   const handleStopsChange = (stops: any) => {
     setFilters(f => ({ ...f, stops }));
@@ -54,6 +55,7 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
       airlines: [],
       hotelRating: 0,
       hotelAmenities: [],
+      onlyHighCommission: false,
     });
   };
 
@@ -88,7 +90,7 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
       <div className="space-y-1.5">
         <div className="flex justify-between text-xs font-bold text-slate-700">
           <span>최대 예산</span>
-          <span className="text-blue-600 font-mono font-black">${filters.maxPrice.toLocaleString()}</span>
+          <span className="text-blue-600 font-mono font-black">{formatPrice(filters.maxPrice, currency)}</span>
         </div>
         <input
           type="range"
@@ -101,8 +103,8 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
           id="price-range-input"
         />
         <div className="flex justify-between text-[9px] text-slate-400 font-bold font-mono">
-          <span>$50</span>
-          <span>${(maxPriceLimit || 1000).toLocaleString()}</span>
+          <span>{formatPrice(50, currency)}</span>
+          <span>{formatPrice(maxPriceLimit || 1000, currency)}</span>
         </div>
       </div>
 

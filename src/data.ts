@@ -131,8 +131,12 @@ export function generateFlights(
   const flights: Flight[] = [];
 
   for (let i = 0; i < flightsCount; i++) {
-    const airlineIdx = Math.floor(random() * AIRLINES.length);
-    const airline = AIRLINES[airlineIdx];
+    let airline = AIRLINES[Math.floor(random() * AIRLINES.length)];
+    if (i === 0) {
+      airline = AIRLINES.find(a => a.code === 'KE') || AIRLINES[0];
+    } else if (i === 1) {
+      airline = AIRLINES.find(a => a.code === 'OZ') || AIRLINES[1];
+    }
 
     // Determine stopovers
     const numStops = isShortHaul ? 0 : random() < 0.35 ? 0 : random() < 0.8 ? 1 : 2;
@@ -223,6 +227,12 @@ export function generateFlights(
     const priceScore = 10000 / finalPrice;
     const score = Math.floor((speedScore * 0.4) + (priceScore * 0.4) + (bagIncluded ? 20 : 0) + (numStops === 0 ? 50 : 0));
 
+    // Commission rate: 1.0% to 8.0%
+    let commissionRate = Math.round((1.0 + random() * 7.0) * 10) / 10;
+    if (airline.code === 'KE' || airline.code === 'OZ') {
+      commissionRate = Math.round((3.5 + random() * 4.5) * 10) / 10;
+    }
+
     flights.push({
       id: `FL-${fromAirport.code}-${toAirport.code}-${airline.code}-${i}`,
       outbound,
@@ -237,6 +247,7 @@ export function generateFlights(
       carbonEmissionKg: emission,
       baggageIncluded: bagIncluded,
       score,
+      commissionRate,
     });
   }
 

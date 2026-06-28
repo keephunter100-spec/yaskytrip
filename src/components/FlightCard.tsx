@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flight, FlightSegment, SearchQuery } from '../types';
+import { Flight, FlightSegment, SearchQuery, formatPrice } from '../types';
 import { Plane, ChevronDown, ChevronUp, Clock, AlertCircle, Luggage, Coffee, ShieldAlert, Leaf, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -8,10 +8,20 @@ interface FlightCardProps {
   onBook: (flight: Flight) => void;
   tag?: 'cheapest' | 'fastest' | 'best';
   searchQuery?: SearchQuery;
+  currency?: 'USD' | 'KRW';
 }
 
-const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuery }) => {
+const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuery, currency = 'USD' }) => {
   const [expanded, setExpanded] = useState(false);
+
+  const formatDateToDDMM = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return '';
+    const day = parts[2];
+    const month = parts[1];
+    return `${day}${month}`;
+  };
 
   const getRealBookingUrl = () => {
     const origin = flight.outbound[0].departureAirport.code;
@@ -19,12 +29,16 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
     const depDate = searchQuery?.departureDate || new Date().toISOString().split('T')[0];
     const retDate = searchQuery?.tripType === 'round-trip' ? searchQuery?.returnDate : undefined;
     
-    let url = `https://www.aviasales.com/search?origin=${origin}&destination=${destination}&departure_at=${depDate}`;
-    if (retDate) {
-      url += `&return_at=${retDate}`;
+    const depDDMM = formatDateToDDMM(depDate);
+    const retDDMM = retDate ? formatDateToDDMM(retDate) : '';
+    
+    let path = `${origin}${depDDMM}${destination}`;
+    if (retDDMM) {
+      path += `${retDDMM}`;
     }
-    url += `&marker=744042&locale=ko`;
-    return url;
+    path += '1'; // 1 passenger
+    
+    return `https://www.aviasales.com/search/${path}?marker=744042&locale=ko`;
   };
 
   const formatDuration = (mins: number) => {
@@ -187,7 +201,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
           {/* Booking Panel (Price and Action button) */}
           <div className="md:col-span-3 md:border-l md:border-slate-100 md:pl-6 text-center md:text-right flex flex-row md:flex-col justify-between md:justify-center items-center h-full gap-4">
             <div>
-              <div className="flex items-center justify-center md:justify-end space-x-1">
+              <div className="flex flex-col items-center md:items-end justify-center space-y-1">
                 {flight.baggageIncluded ? (
                   <span className="text-[10px] text-green-700 bg-green-50 border border-green-100 px-1.5 py-0.5 rounded flex items-center font-semibold">
                     <Luggage className="h-3 w-3 mr-0.5" /> 위탁수하물 포함
@@ -199,9 +213,9 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 )}
               </div>
               <div className="mt-1 text-2xl font-black text-gray-900 font-sans">
-                ${flight.price.toLocaleString()}
+                {formatPrice(flight.price, currency)}
               </div>
-              <span className="text-[10px] text-gray-400 font-medium block">세금 및 수수료 포함가</span>
+              <span className="text-[10px] text-gray-400 font-medium block">세금 포함가</span>
             </div>
 
             <div className="space-y-1.5 w-full max-w-[120px] sm:max-w-none">

@@ -7,8 +7,9 @@ import StatsDashboard from './components/StatsDashboard';
 import FlightCard from './components/FlightCard';
 import HotelCard from './components/HotelCard';
 import BookingModal from './components/BookingModal';
+import AuthModal from './components/AuthModal';
 import { generateFlights, generateHotels, AIRPORTS, CITIES } from './data';
-import { Flight, Hotel, SearchQuery, FilterOptions, BookingDetails } from './types';
+import { Flight, Hotel, SearchQuery, FilterOptions, BookingDetails, formatPrice } from './types';
 import { Plane, Hotel as HotelIcon, Briefcase, Trash2, ShieldCheck, Sparkles, ArrowRight, Compass, Heart, HeartOff, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -34,6 +35,14 @@ export default function App() {
   };
 
   const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings'>('flights');
+  const [currency, setCurrency] = useState<'USD' | 'KRW'>(() => {
+    return (localStorage.getItem('yaskytrip_currency') as 'USD' | 'KRW') || 'USD';
+  });
+
+  const handleCurrencyChange = (cur: 'USD' | 'KRW') => {
+    setCurrency(cur);
+    localStorage.setItem('yaskytrip_currency', cur);
+  };
   
   // Set default query to Seoul -> Tokyo today
   const today = new Date().toISOString().split('T')[0];
@@ -69,10 +78,56 @@ export default function App() {
     airlines: [],
     hotelRating: 0,
     hotelAmenities: [],
+    onlyHighCommission: false,
   });
 
   // Persistent Bookings (LocalStorage)
   const [bookings, setBookings] = useState<BookingDetails[]>([]);
+
+  // Authentication states
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(() => {
+    const saved = localStorage.getItem('yaskytrip_user_email');
+    if (saved === null) {
+      // Default logged in user to provide immediate high-fidelity experience matching metadata
+      localStorage.setItem('yaskytrip_user_email', 'koreapaik@gmail.com');
+      
+      // Seed this user into local simulation db
+      const usersKey = 'yaskytrip_registered_users';
+      const usersRaw = localStorage.getItem(usersKey);
+      const users = usersRaw ? JSON.parse(usersRaw) : [];
+      if (!users.some((u: any) => u.email === 'koreapaik@gmail.com')) {
+        users.push({ email: 'koreapaik@gmail.com', password: '123456', name: '백코리아' });
+        localStorage.setItem(usersKey, JSON.stringify(users));
+      }
+      return 'koreapaik@gmail.com';
+    }
+    return saved || null;
+  });
+
+  const [authModal, setAuthModal] = useState<{
+    isOpen: boolean;
+    initialMode: 'login' | 'signup';
+  }>({
+    isOpen: false,
+    initialMode: 'login',
+  });
+
+  const handleOpenAuth = (mode: 'login' | 'signup') => {
+    setAuthModal({
+      isOpen: true,
+      initialMode: mode,
+    });
+  };
+
+  const handleAuthSuccess = (email: string) => {
+    setCurrentUserEmail(email);
+    localStorage.setItem('yaskytrip_user_email', email);
+  };
+
+  const handleLogout = () => {
+    setCurrentUserEmail(null);
+    localStorage.removeItem('yaskytrip_user_email');
+  };
 
   // Modal State
   const [bookingModal, setBookingModal] = useState<{
@@ -240,7 +295,7 @@ export default function App() {
   };
 
   const handleDeleteBooking = (id: string) => {
-    if (confirm('정말로 이 예약을 취소하시겠습니까? 취소 후 수수료 없이 100% 환불 처리됩니다.')) {
+    if (confirm('정말로 이 예약을 취소하시겠습니까? 취소 후 100% 환불 처리됩니다.')) {
       const updated = bookings.filter(b => b.id !== id);
       saveBookings(updated);
     }
@@ -335,6 +390,11 @@ export default function App() {
           }
         }} 
         bookingCount={bookings.length} 
+        currency={currency}
+        setCurrency={handleCurrencyChange}
+        currentUserEmail={currentUserEmail}
+        onOpenAuth={handleOpenAuth}
+        onLogout={handleLogout}
       />
 
       {/* Main Container */}
@@ -476,7 +536,7 @@ export default function App() {
                         <div className="mt-6 pt-4 border-t border-gray-150 flex justify-between items-center">
                           <div>
                             <span className="text-[9px] text-gray-400 block font-medium">총 지불 금액</span>
-                            <span className="text-base font-black text-gray-900 font-sans">${booking.totalPrice.toLocaleString()}</span>
+                            <span className="text-base font-black text-gray-900 font-sans">{formatPrice(booking.totalPrice, currency)}</span>
                           </div>
 
                           <button
@@ -505,6 +565,7 @@ export default function App() {
                     setFilters={setFilters} 
                     availableAirlines={availableAirlines}
                     maxPriceLimit={maxPriceLimit}
+                    currency={currency}
                   />
                 </aside>
 
@@ -543,6 +604,7 @@ export default function App() {
                       hotels={hotels} 
                       activeSort={activeSort} 
                       setActiveSort={(sort) => setActiveSort(sort)} 
+                      currency={currency}
                     />
                   </div>
 
@@ -560,7 +622,7 @@ export default function App() {
                         sortedFlights.map((flight, index) => {
                           // Determine best tags
                           let tag: 'cheapest' | 'fastest' | 'best' | undefined = undefined;
-                          if (index === 0 && activeSort === 'best') tag = 'best';
+                          if (activeSort === 'best' && index === 0) tag = 'best';
                           if (flight.id === [...flights].sort((a,b) => a.price - b.price)[0]?.id) tag = 'cheapest';
                           
                           return (
@@ -570,6 +632,7 @@ export default function App() {
                               onBook={handleOpenFlightBooking}
                               tag={tag}
                               searchQuery={searchQuery}
+                              currency={currency}
                             />
                           );
                         })
@@ -590,6 +653,7 @@ export default function App() {
                             hotel={hotel} 
                             onBook={handleOpenHotelBooking}
                             searchQuery={searchQuery}
+                            currency={currency}
                           />
                         ))
                       )
@@ -621,9 +685,18 @@ export default function App() {
             onClose={() => setBookingModal({ isOpen: false, type: 'flight' })}
             onConfirmBooking={handleConfirmBooking}
             searchQuery={searchQuery}
+            currency={currency}
           />
         )}
       </AnimatePresence>
+
+      {/* Authentication Modal (Login/Signup) */}
+      <AuthModal 
+        isOpen={authModal.isOpen}
+        initialMode={authModal.initialMode}
+        onClose={() => setAuthModal(prev => ({ ...prev, isOpen: false }))}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flight, Hotel, BookingDetails, SearchQuery } from '../types';
+import { Flight, Hotel, BookingDetails, SearchQuery, formatPrice } from '../types';
 import { X, CheckCircle, Mail, Phone, CreditCard, Ticket, ShieldCheck, Award, AlertCircle, Sparkles, Sofa, Plane, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -12,6 +12,7 @@ interface BookingModalProps {
   onClose: () => void;
   onConfirmBooking: (booking: BookingDetails) => void;
   searchQuery?: SearchQuery;
+  currency?: 'USD' | 'KRW';
 }
 
 export default function BookingModal({
@@ -23,6 +24,7 @@ export default function BookingModal({
   onClose,
   onConfirmBooking,
   searchQuery,
+  currency = 'USD',
 }: BookingModalProps) {
   const [step, setStep] = useState(1);
   const [firstName, setFirstName] = useState('');
@@ -46,8 +48,24 @@ export default function BookingModal({
     ? (flight?.price || 0) 
     : (hotelPrice || hotel?.pricePerNight || 0);
 
-  const getFlightRealUrl = () => {
-    if (!flight) return 'https://www.aviasales.com/?marker=744042';
+  const formatDateToDDMM = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return '';
+    const day = parts[2];
+    const month = parts[1];
+    return `${day}${month}`;
+  };
+
+  const getFlightRealUrls = () => {
+    const defaultList = [
+      { name: 'Aviasales', logo: '✈️', url: 'https://www.aviasales.com/?marker=744042', desc: '실시간 전세계 항공 최저가 비교', color: 'bg-amber-500 hover:bg-amber-600' },
+      { name: 'Skyscanner', logo: '🌐', url: 'https://www.skyscanner.co.kr/', desc: '글로벌 가격 비교 No.1', color: 'bg-emerald-500 hover:bg-emerald-600' },
+      { name: 'Google Flights', logo: '🔍', url: 'https://www.google.com/travel/flights', desc: '구글 공식 항공 노선/가격 검색', color: 'bg-blue-600 hover:bg-blue-700' },
+      { name: 'Trip.com', logo: '💳', url: 'https://co.trip.com/flights/', desc: '아시아 노선 및 카드사 특화 할인', color: 'bg-sky-500 hover:bg-sky-600' },
+    ];
+    if (!flight) return defaultList;
+
     const firstOutbound = flight.outbound[0];
     const lastOutbound = flight.outbound[flight.outbound.length - 1];
     const origin = firstOutbound.departureAirport.code;
@@ -55,20 +73,40 @@ export default function BookingModal({
     const depDate = searchQuery?.departureDate || new Date().toISOString().split('T')[0];
     const retDate = searchQuery?.tripType === 'round-trip' ? searchQuery?.returnDate : undefined;
     
-    let url = `https://www.aviasales.com/search?origin=${origin}&destination=${destination}&departure_at=${depDate}`;
-    if (retDate) {
-      url += `&return_at=${retDate}`;
+    const depDDMM = formatDateToDDMM(depDate);
+    const retDDMM = retDate ? formatDateToDDMM(retDate) : '';
+    
+    let path = `${origin}${depDDMM}${destination}`;
+    if (retDDMM) {
+      path += `${retDDMM}`;
     }
-    url += `&marker=744042&locale=ko`;
-    return url;
+    path += '1'; // 1 passenger
+    
+    const aviaUrl = `https://www.aviasales.com/search/${path}?marker=744042&locale=ko`;
+    
+    // Skyscanner path: yyMMdd format
+    const ssDep = depDate.replace(/-/g, '').substring(2);
+    const ssRet = retDate ? '/' + retDate.replace(/-/g, '').substring(2) : '';
+    const skyUrl = `https://www.skyscanner.co.kr/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${ssDep}${ssRet}/?adultsv2=1&cabinclass=economy&locale=ko-KR&currency=KRW`;
+
+    // Google Flights
+    const googleUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${destination}%20from%20${origin}%20on%20${depDate}${retDate ? '%20returning%20' + retDate : ''}`;
+
+    // Trip.com
+    const tripUrl = `https://co.trip.com/flights/show-flights-list?dcity=${origin}&acity=${destination}&ddate=${depDate}${retDate ? '&rdate=' + retDate : ''}&flighttype=${retDate ? 'rt' : 'ow'}&adult=1&class=y`;
+
+    return [
+      { name: 'Aviasales (추천)', logo: '✈️', url: aviaUrl, desc: '실시간 제휴 직항/경유 비교', color: 'bg-amber-500 hover:bg-amber-600' },
+      { name: 'Skyscanner', logo: '🌐', url: skyUrl, desc: '전 세계 인기 항공권 가격 비교', color: 'bg-emerald-500 hover:bg-emerald-600' },
+      { name: 'Google Flights', logo: '🔍', url: googleUrl, desc: '간편한 노선도 및 트렌드 예측', color: 'bg-blue-600 hover:bg-blue-700' },
+      { name: 'Trip.com', logo: '🟦', url: tripUrl, desc: '원화 간편 결제 및 상시 프로모션', color: 'bg-sky-500 hover:bg-sky-600' },
+    ];
   };
 
-  const getHotelRealUrl = () => {
-    if (!hotel) return 'https://hotellook.com/?marker=744042';
-    const location = hotel.city;
+  const getHotelRealUrls = () => {
+    const location = hotel?.city || 'Seoul';
     const checkIn = searchQuery?.departureDate || new Date().toISOString().split('T')[0];
     
-    // Calculate checkout date
     let checkOut = searchQuery?.returnDate;
     if (!checkOut) {
       const nextDay = new Date(checkIn);
@@ -76,7 +114,17 @@ export default function BookingModal({
       checkOut = nextDay.toISOString().split('T')[0];
     }
     
-    return `https://hotellook.com/search?location=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&marker=744042&language=ko`;
+    const hlUrl = `https://hotellook.com/search?location=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&marker=744042&language=ko`;
+    const agodaUrl = `https://www.agoda.com/ko-kr/search?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=1`;
+    const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(location)}&checkin=${checkIn}&checkout=${checkOut}&group_adults=1`;
+    const tripHotelUrl = `https://co.trip.com/hotels/list?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adult=1`;
+
+    return [
+      { name: 'Hotellook (추천)', logo: '🏨', url: hlUrl, desc: '전 세계 주요 사이트 최저가 요약', color: 'bg-amber-500 hover:bg-amber-600' },
+      { name: 'Agoda', logo: '🅰️', url: agodaUrl, desc: '동남아/일본 아시아 특가 최대 보장', color: 'bg-rose-500 hover:bg-rose-600' },
+      { name: 'Booking.com', logo: '🟩', url: bookingUrl, desc: '현지 결제 가능 및 유연한 취소', color: 'bg-emerald-600 hover:bg-emerald-700' },
+      { name: 'Trip.com 호텔', logo: '🟦', url: tripHotelUrl, desc: '원화 완벽 대응 및 연중무휴 고객지원', color: 'bg-sky-500 hover:bg-sky-600' },
+    ];
   };
 
   // Seat Configuration
@@ -295,7 +343,7 @@ export default function BookingModal({
                         : `${hotel?.name} - ${selectedRoomType}`
                       }
                     </span>
-                    <span className="text-blue-600 font-sans font-black text-sm">${totalPrice.toLocaleString()}</span>
+                    <span className="text-blue-600 font-sans font-black text-sm">{formatPrice(totalPrice, currency)}</span>
                   </div>
                 </div>
 
@@ -500,7 +548,7 @@ export default function BookingModal({
                 <div className="space-y-3.5 border-t border-slate-100 pt-6">
                   <div className="flex justify-between text-xs text-slate-600 font-semibold">
                     <span>최종 결제 금액</span>
-                    <span className="text-slate-900 font-sans font-black text-base">${totalPrice.toLocaleString()}</span>
+                    <span className="text-slate-900 font-sans font-black text-base">{formatPrice(totalPrice, currency)}</span>
                   </div>
                   
                   <div className="bg-emerald-50 text-emerald-850 border border-emerald-100 rounded p-3 flex space-x-2 text-[10px] font-medium leading-relaxed">
@@ -509,24 +557,39 @@ export default function BookingModal({
                   </div>
                 </div>
 
-                {/* Travelpayouts Real Affiliate Booking Link Card */}
-                <div className="bg-amber-50 border border-amber-150 rounded-xl p-4 text-xs space-y-2">
-                  <div className="font-bold text-amber-900 flex items-center space-x-1.5">
-                    <Sparkles className="h-4 w-4 text-amber-600 animate-pulse" />
-                    <span>실제 실시간 최저가로 바로 예약하기</span>
+                {/* Travelpayouts & Partners Real Affiliate Booking Links */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-3 shadow-sm">
+                  <div className="font-bold text-slate-800 flex items-center space-x-1.5 border-b border-slate-200/60 pb-2">
+                    <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
+                    <span className="text-sm font-black">실시간 최저가 예약 플랫폼 선택</span>
                   </div>
-                  <p className="text-[11px] text-amber-700 leading-relaxed">
-                    이것은 모의 시뮬레이션 예약 단계입니다. <b>YASKYTRIP</b> 제휴 채널(파트너 ID: 744042)을 통해 실제 전 세계 항공사/호텔 실시간 데이터베이스에서 최고의 가격으로 안전하게 발권을 완료해 보세요!
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    이것은 모의 예약 데모입니다. 아래의 공식 검증된 플랫폼을 클릭하여 <b>실제 실시간 최저가</b>를 조회하고 원스톱 안전 발권을 진행하실 수 있습니다!
                   </p>
-                  <a
-                    href={type === 'flight' ? getFlightRealUrl() : getHotelRealUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex w-full items-center justify-center bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-sm space-x-1 cursor-pointer"
-                  >
-                    <span>실제 {type === 'flight' ? 'Aviasales' : 'Hotellook'} 최저가로 예약하기</span>
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  
+                  <div className="grid grid-cols-1 gap-2 mt-1">
+                    {(type === 'flight' ? getFlightRealUrls() : getHotelRealUrls()).map((site, index) => (
+                      <a
+                        key={index}
+                        href={site.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-2.5 bg-white border border-slate-150 rounded-xl hover:border-blue-500 hover:shadow-sm transition-all duration-250 cursor-pointer group"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <span className="text-lg shrink-0 select-none">{site.logo}</span>
+                          <div className="text-left">
+                            <span className="font-bold text-slate-800 text-xs block group-hover:text-blue-600 transition-colors">{site.name}</span>
+                            <span className="text-[9px] text-gray-400 block font-medium mt-0.5">{site.desc}</span>
+                          </div>
+                        </div>
+                        <div className={`px-2.5 py-1.5 ${site.color} text-white font-bold rounded-lg text-[10px] flex items-center space-x-1 transition-all shadow-sm`}>
+                          <span>이동</span>
+                          <ExternalLink className="h-3 w-3 shrink-0" />
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="pt-2">
@@ -611,7 +674,7 @@ export default function BookingModal({
                       </div>
                       <div>
                         <span className="block text-[9px] text-blue-100 uppercase font-semibold">Total Price</span>
-                        <span className="font-bold font-sans text-sm">${totalPrice.toLocaleString()}</span>
+                        <span className="font-bold font-sans text-sm">{formatPrice(totalPrice, currency)}</span>
                       </div>
                     </div>
                   </div>

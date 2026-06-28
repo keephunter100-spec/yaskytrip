@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Hotel, SearchQuery } from '../types';
+import { Hotel, SearchQuery, formatPrice } from '../types';
 import { Star, MapPin, Check, Wifi, Award, ChevronDown, ChevronUp, User, ThumbsUp, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -7,9 +7,10 @@ interface HotelCardProps {
   hotel: Hotel;
   onBook: (hotel: Hotel, roomName: string, price: number) => void;
   searchQuery?: SearchQuery;
+  currency?: 'USD' | 'KRW';
 }
 
-const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery }) => {
+const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, currency = 'USD' }) => {
   const [expanded, setExpanded] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(hotel.roomTypes[0]?.name || '');
 
@@ -135,7 +136,7 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery }) => 
             <div>
               <span className="text-[10px] text-gray-400 block font-medium">객실 최저가 / 1박 기준</span>
               <div className="text-2xl font-black text-gray-900 font-sans">
-                ${currentRoomPrice.toLocaleString()}
+                {formatPrice(currentRoomPrice, currency)}
               </div>
               <span className="text-[9px] text-gray-400 font-semibold block">소계: 세금 & 봉사료 별도</span>
             </div>
@@ -202,7 +203,7 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery }) => 
                     >
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-slate-800">{room.name}</span>
-                        <span className="text-sm font-black text-blue-600 font-sans">${room.price.toLocaleString()}</span>
+                        <span className="text-sm font-black text-blue-600 font-sans">{formatPrice(room.price, currency)}</span>
                       </div>
                       <p className="text-[10px] text-gray-500 leading-relaxed mt-1">{room.description}</p>
                     </div>

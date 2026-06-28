@@ -1,1 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Nanum Gothic", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans) !important;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  a, button, [role="button"], select, input[type="submit"], input[type="button"] {
+    cursor: pointer !important;
+  }
+
+  /* 굵은체 하지 말고 지시어 적용: 두껍고 묵직한 폰트(black, extrabold)를 부드럽고 얇은 일반 굵기(400~700)로 제한하여 가독성을 극대화합니다 */
+  .font-black {
+    font-weight: 400 !important;
+  }
+  
+  .font-extrabold {
+    font-weight: 400 !important;
+  }
+
+  .font-bold {
+    font-weight: 700 !important;
+  }
+
+  /* 제목 영역의 과도한 볼드를 피하고 깔끔하게 렌더링 */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 400 !important;
+  }
+}
+
+

@@ -45,6 +45,7 @@ export interface Flight {
   carbonEmissionKg: number;
   baggageIncluded: boolean;
   score: number; // Kayak ratio: combination of price, speed, convenience
+  commissionRate: number; // Commission rate as percentage, e.g. 3.5 for 3.5%
 }
 
 export interface Hotel {
@@ -97,6 +98,7 @@ export interface FilterOptions {
   airlines: string[]; // Selected airline codes
   hotelRating: number; // minimum stars
   hotelAmenities: string[];
+  onlyHighCommission: boolean; // Only recommend flights with 3%+ commission
 }
 
 export interface BookingDetails {
@@ -116,3 +118,13 @@ export interface BookingDetails {
   totalPrice: number;
   bookingDate: string;
 }
+
+export const EXCHANGE_RATE = 1400;
+
+export function formatPrice(priceInUSD: number, currency: string) {
+  if (currency === 'KRW') {
+    return `₩${Math.round(priceInUSD * EXCHANGE_RATE).toLocaleString()}`;
+  }
+  return `$${priceInUSD.toLocaleString()}`;
+}
+

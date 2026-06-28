@@ -1,6 +1,6 @@
 import React from 'react';
 import { DollarSign, Zap, Sparkles, Star, Award, Compass } from 'lucide-react';
-import { Flight, Hotel } from '../types';
+import { Flight, Hotel, formatPrice } from '../types';
 
 interface StatsDashboardProps {
   type: 'flights' | 'hotels';
@@ -8,9 +8,10 @@ interface StatsDashboardProps {
   hotels?: Hotel[];
   activeSort: 'best' | 'cheapest' | 'fastest' | 'rating';
   setActiveSort: (sort: any) => void;
+  currency?: 'USD' | 'KRW';
 }
 
-export default function StatsDashboard({ type, flights = [], hotels = [], activeSort, setActiveSort }: StatsDashboardProps) {
+export default function StatsDashboard({ type, flights = [], hotels = [], activeSort, setActiveSort, currency = 'USD' }: StatsDashboardProps) {
   
   if (type === 'flights') {
     // Calculate best, cheapest, fastest from the list
@@ -52,7 +53,7 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase">추천 항공편</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
-            <span className="text-base font-black font-sans">${best.price.toLocaleString()}</span>
+            <span className="text-base font-black font-sans">{formatPrice(best.price, currency)}</span>
             <span className="text-[9px] opacity-75 font-semibold">평균 {formatDuration(best.totalDurationOutbound)}</span>
           </div>
         </button>
@@ -72,7 +73,7 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase">최저가</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
-            <span className="text-base font-black font-sans">${cheapest.price.toLocaleString()}</span>
+            <span className="text-base font-black font-sans">{formatPrice(cheapest.price, currency)}</span>
             <span className="text-[9px] opacity-75 font-semibold">평균 {formatDuration(cheapest.totalDurationOutbound)}</span>
           </div>
         </button>
@@ -92,7 +93,7 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase">가장 빠름</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
-            <span className="text-base font-black font-sans">${fastest.price.toLocaleString()}</span>
+            <span className="text-base font-black font-sans">{formatPrice(fastest.price, currency)}</span>
             <span className="text-[9px] opacity-75 font-semibold">평균 {formatDuration(fastest.totalDurationOutbound)}</span>
           </div>
         </button>
@@ -128,7 +129,7 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase">최고 평점</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
-            <span className="text-base font-black font-sans">${highlyRated.pricePerNight.toLocaleString()}</span>
+            <span className="text-base font-black font-sans">{formatPrice(highlyRated.pricePerNight, currency)}</span>
             <span className="text-[9px] opacity-75 font-semibold">평점 ★{highlyRated.reviewScore}</span>
           </div>
         </button>
@@ -148,7 +149,7 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase">최저가</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
-            <span className="text-base font-black font-sans">${cheapest.pricePerNight.toLocaleString()}</span>
+            <span className="text-base font-black font-sans">{formatPrice(cheapest.pricePerNight, currency)}</span>
             <span className="text-[9px] opacity-75 font-semibold">최저가 보장</span>
           </div>
         </button>
@@ -168,7 +169,7 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase font-sans">최다 후기</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
-            <span className="text-base font-black font-sans">${popular.pricePerNight.toLocaleString()}</span>
+            <span className="text-base font-black font-sans">{formatPrice(popular.pricePerNight, currency)}</span>
             <span className="text-[9px] opacity-75 font-semibold">{popular.reviewCount}개 후기</span>
           </div>
         </button>

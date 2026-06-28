@@ -5,9 +5,23 @@ interface HeaderProps {
   activeTab: 'flights' | 'hotels' | 'bookings';
   setActiveTab: (tab: 'flights' | 'hotels' | 'bookings') => void;
   bookingCount: number;
+  currency: 'USD' | 'KRW';
+  setCurrency: (currency: 'USD' | 'KRW') => void;
+  currentUserEmail: string | null;
+  onOpenAuth: (mode: 'login' | 'signup') => void;
+  onLogout: () => void;
 }
 
-export default function Header({ activeTab, setActiveTab, bookingCount }: HeaderProps) {
+export default function Header({ 
+  activeTab, 
+  setActiveTab, 
+  bookingCount, 
+  currency, 
+  setCurrency,
+  currentUserEmail,
+  onOpenAuth,
+  onLogout
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shrink-0" id="main-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,18 +88,52 @@ export default function Header({ activeTab, setActiveTab, bookingCount }: Header
           </div>
 
           {/* Right Side Options */}
-          <div className="flex items-center space-x-4">
-            <button className="p-2 text-slate-500 hover:text-blue-600 rounded-md hover:bg-slate-50 transition-colors hidden sm:flex items-center space-x-1 text-xs">
-              <Globe className="h-4 w-4" />
-              <span>KO | USD</span>
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => setCurrency(currency === 'USD' ? 'KRW' : 'USD')}
+              className="p-2 text-slate-700 hover:text-blue-600 rounded-md hover:bg-slate-50 transition-all hidden sm:flex items-center space-x-1 text-xs cursor-pointer border border-slate-200 shadow-sm"
+              title="Click to toggle currency between KRW (원) and USD ($)"
+              id="currency-toggle-btn"
+            >
+              <Globe className="h-4 w-4 text-blue-600 animate-pulse" />
+              <span className="font-bold">KO | {currency === 'KRW' ? 'KRW (₩)' : 'USD ($)'}</span>
             </button>
             <div className="h-4 w-[1px] bg-slate-200 hidden sm:block"></div>
-            <div className="flex items-center space-x-2 p-1 px-2.5 bg-slate-50 border border-slate-100 rounded-md text-slate-700 text-xs font-medium cursor-pointer hover:bg-slate-100 transition-colors">
-              <div className="h-5 w-5 rounded bg-blue-100 flex items-center justify-center text-blue-600 text-[10px] font-bold">
-                K
+            
+            {currentUserEmail ? (
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-1 px-2 bg-slate-50 border border-slate-100 rounded-lg text-slate-700 text-xs font-medium">
+                  <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-[10px] font-bold">
+                    {currentUserEmail.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="hidden sm:inline-block max-w-[120px] truncate">{currentUserEmail}</span>
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200"
+                  id="header-logout-btn"
+                >
+                  로그아웃
+                </button>
               </div>
-              <span className="hidden sm:inline-block">koreapaik@gmail.com</span>
-            </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => onOpenAuth('login')}
+                  className="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200"
+                  id="header-login-btn"
+                >
+                  로그인
+                </button>
+                <button
+                  onClick={() => onOpenAuth('signup')}
+                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-sm"
+                  id="header-signup-btn"
+                >
+                  회원가입
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
