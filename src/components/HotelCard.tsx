@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Hotel, SearchQuery, formatPrice } from '../types';
-import { Star, MapPin, Check, Wifi, Award, ChevronDown, ChevronUp, User, ThumbsUp, ExternalLink } from 'lucide-react';
+import { Star, MapPin, Check, Wifi, Award, ChevronDown, ChevronUp, User, ThumbsUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface HotelCardProps {
   hotel: Hotel;
   onBook: (hotel: Hotel, roomName: string, price: number) => void;
   searchQuery?: SearchQuery;
-  currency?: 'USD' | 'KRW';
+  currency?: string;
 }
 
 const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, currency = 'USD' }) => {
@@ -57,123 +57,115 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
 
   return (
     <div 
-      className={`bg-white border rounded-lg overflow-hidden transition-all duration-200 shadow-sm flex flex-col md:flex-row ${
+      className={`bg-white border rounded-lg overflow-hidden transition-all duration-200 shadow-sm flex flex-col ${
         expanded ? 'border-blue-600 shadow-md ring-1 ring-blue-600/10' : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
       }`}
       id={`hotel-card-${hotel.id}`}
     >
-      {/* Hotel Image Section */}
-      <div className="w-full md:w-72 h-48 md:h-auto relative overflow-hidden shrink-0">
-        <img 
-          src={hotel.imageUrl} 
-          alt={hotel.name} 
-          className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-          referrerPolicy="no-referrer"
-        />
-        {hotel.rating === 5 && (
-          <span className="absolute top-3 left-3 bg-gray-900/90 text-yellow-400 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center space-x-1 uppercase tracking-wider backdrop-blur-xs">
-            <Award className="h-3.5 w-3.5" />
-            <span>최고의 럭셔리</span>
-          </span>
-        )}
-      </div>
+      {/* Top Section: Image and Info Details */}
+      <div className="flex flex-col md:flex-row w-full">
+        {/* Hotel Image Section */}
+        <div className="w-full md:w-72 h-48 md:h-auto relative overflow-hidden shrink-0">
+          <img 
+            src={hotel.imageUrl} 
+            alt={hotel.name} 
+            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+            referrerPolicy="no-referrer"
+          />
+          {hotel.rating === 5 && (
+            <span className="absolute top-3 left-3 bg-gray-900/90 text-yellow-400 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center space-x-1 uppercase tracking-wider backdrop-blur-xs">
+              <Award className="h-3.5 w-3.5" />
+              <span>최고의 럭셔리</span>
+            </span>
+          )}
+        </div>
 
-      {/* Main Details Section */}
-      <div className="flex-1 p-6 flex flex-col justify-between">
-        <div>
-          {/* Header row (Title and Stars) */}
-          <div className="flex justify-between items-start flex-wrap gap-2">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 leading-snug">{hotel.name}</h3>
-              <div className="flex items-center space-x-1.5 mt-1 text-gray-500 text-xs">
-                <MapPin className="h-3.5 w-3.5 text-gray-400" />
-                <span>{hotel.address}</span>
+        {/* Main Details Section */}
+        <div className="flex-1 p-6 flex flex-col justify-between min-w-0">
+          <div>
+            {/* Header row (Title and Stars) */}
+            <div className="flex justify-between items-start flex-wrap gap-2">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 leading-snug">{hotel.name}</h3>
+                <div className="flex items-center space-x-1.5 mt-1 text-gray-500 text-xs">
+                  <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                  <span>{hotel.address}</span>
+                </div>
               </div>
-            </div>
 
               <div className="flex space-x-0.5 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
                 {Array.from({ length: hotel.rating }).map((_, idx) => (
                   <Star key={idx} className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                 ))}
               </div>
-          </div>
-
-          {/* Amenities Row */}
-          <div className="flex flex-wrap gap-1.5 mt-4">
-            {hotel.amenities.slice(0, 4).map((am) => (
-              <span 
-                key={am} 
-                className="text-[10px] bg-slate-50 border border-slate-250 px-2 py-0.5 rounded font-medium text-slate-600 flex items-center"
-              >
-                <Check className="h-2.5 w-2.5 text-blue-600 mr-1 shrink-0" />
-                {getAmenityLabel(am)}
-              </span>
-            ))}
-            {hotel.amenities.length > 4 && (
-              <span className="text-[10px] text-gray-400 font-semibold px-1.5 py-1">
-                +{hotel.amenities.length - 4}개 편의시설 더보기
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom row (Price, Reviews, Expand toggler) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end mt-6 pt-6 border-t border-gray-100">
-          
-          {/* Reviews Score */}
-          <div className="flex items-center space-x-2.5">
-            <div className="h-9 w-9 bg-blue-600 text-white font-sans font-black flex items-center justify-center rounded text-sm">
-              {hotel.reviewScore.toFixed(1)}
             </div>
-            <div>
-              <span className="block text-xs font-black text-slate-800 leading-none">{getReviewWord(hotel.reviewScore)}</span>
-              <span className="block text-[10px] text-slate-400 font-bold mt-0.5">최근 후기 {hotel.reviewCount}개</span>
+
+            {/* Amenities Row */}
+            <div className="flex flex-wrap gap-1.5 mt-4">
+              {hotel.amenities.slice(0, 4).map((am) => (
+                <span 
+                  key={am} 
+                  className="text-[10px] bg-slate-50 border border-slate-250 px-2 py-0.5 rounded font-medium text-slate-600 flex items-center"
+                >
+                  <Check className="h-2.5 w-2.5 text-blue-600 mr-1 shrink-0" />
+                  {getAmenityLabel(am)}
+                </span>
+              ))}
+              {hotel.amenities.length > 4 && (
+                <span className="text-[10px] text-gray-400 font-semibold px-1.5 py-1">
+                  +{hotel.amenities.length - 4}개 편의시설 더보기
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Price details and Action buttons */}
-          <div className="text-right flex justify-between sm:flex-col items-center sm:items-end gap-2">
-            <div>
-              <span className="text-[10px] text-gray-400 block font-medium">객실 최저가 / 1박 기준</span>
-              <div className="text-2xl font-black text-gray-900 font-sans">
-                {formatPrice(currentRoomPrice, currency)}
+          {/* Bottom row (Price, Reviews, Expand toggler) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end mt-6 pt-6 border-t border-gray-100">
+            
+            {/* Reviews Score */}
+            <div className="flex items-center space-x-2.5">
+              <div className="h-9 w-9 bg-blue-600 text-white font-sans font-black flex items-center justify-center rounded text-sm shrink-0">
+                {hotel.reviewScore.toFixed(1)}
               </div>
-              <span className="text-[9px] text-gray-400 font-semibold block">소계: 세금 & 봉사료 별도</span>
+              <div>
+                <span className="block text-xs font-black text-slate-800 leading-none">{getReviewWord(hotel.reviewScore)}</span>
+                <span className="block text-[10px] text-slate-400 font-bold mt-0.5">최근 후기 {hotel.reviewCount}개</span>
+              </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <button
-                type="button"
-                onClick={() => setExpanded(!expanded)}
-                className="text-slate-600 hover:text-slate-900 text-xs font-bold px-2.5 py-1.5 rounded border border-slate-200 hover:bg-slate-50"
-              >
-                {expanded ? '상세 숨기기' : '객실 및 후기 선택'}
-              </button>
+            {/* Price details and Action buttons */}
+            <div className="text-right flex justify-between sm:flex-col items-center sm:items-end gap-2">
+              <div>
+                <span className="text-[10px] text-gray-400 block font-medium">객실 최저가 / 1박 기준</span>
+                <div className="text-2xl font-black text-gray-900 font-sans">
+                  {formatPrice(currentRoomPrice, currency)}
+                </div>
+                <span className="text-[9px] text-gray-400 font-semibold block">소계: 세금 & 봉사료 별도</span>
+              </div>
 
-              <a
-                href={getRealBookingUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded transition-all shadow-sm flex items-center space-x-1 cursor-pointer"
-                id={`real-book-hotel-btn-${hotel.id}`}
-              >
-                <span>실제 최저가 비교</span>
-                <ExternalLink className="h-3 w-3" />
-              </a>
-              
-              <button
-                type="button"
-                onClick={() => onBook(hotel, selectedRoom, currentRoomPrice)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer"
-                id={`book-hotel-btn-${hotel.id}`}
-              >
-                예약 진행
-              </button>
+              <div className="flex items-center space-x-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setExpanded(!expanded)}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60 font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  {expanded ? '상세 숨기기' : '객실 및 후기 선택'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onBook(hotel, selectedRoom, currentRoomPrice)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                  id={`book-hotel-btn-${hotel.id}`}
+                >
+                  일정 선택 및 예약
+                </button>
+              </div>
             </div>
+
           </div>
 
         </div>
-
       </div>
 
       {/* Expanded Accordion: Rooms & Reviews */}
@@ -183,7 +175,7 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
             initial={{ height: 0 }}
             animate={{ height: 'auto' }}
             exit={{ height: 0 }}
-            className="md:col-span-12 border-t border-gray-100 bg-gray-50 overflow-hidden"
+            className="border-t border-gray-100 bg-gray-50 overflow-hidden"
           >
             <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
               

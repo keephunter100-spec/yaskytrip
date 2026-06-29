@@ -8,7 +8,7 @@ interface FlightCardProps {
   onBook: (flight: Flight) => void;
   tag?: 'cheapest' | 'fastest' | 'best';
   searchQuery?: SearchQuery;
-  currency?: 'USD' | 'KRW';
+  currency?: string;
 }
 
 const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuery, currency = 'USD' }) => {
@@ -57,6 +57,171 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
     }
   };
 
+  const formatKoreanDateString = (dateStr: string | undefined) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
+      return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const renderAirlineLogo = (code: string, originalLogo: string, name: string) => {
+    switch (code) {
+      case 'KE': // Korean Air
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g transform="rotate(-15 50 50)">
+                {/* Blue bottom half */}
+                <path d="M 15,50 A 35,35 0 0,0 85,50 C 85,67.5 67.5,67.5 50,50 C 32.5,32.5 15,32.5 15,50 Z" fill="#00529b" />
+                {/* Red top half */}
+                <path d="M 15,50 A 35,35 0 0,1 85,50 C 85,32.5 67.5,32.5 50,50 C 32.5,67.5 15,67.5 15,50 Z" fill="#c8102e" />
+                {/* White divider curve */}
+                <path d="M 15,50 C 32.5,67.5 50,32.5 85,50" stroke="#ffffff" strokeWidth="5.5" fill="none" />
+              </g>
+            </svg>
+          </div>
+        );
+      case 'OZ': // Asiana Airlines
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 65" className="w-11 h-7 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Red stripe */}
+              <path d="M 15 55 L 55 15 L 63 15 L 23 55 Z" fill="#d12640" />
+              {/* Yellow stripe */}
+              <path d="M 23 55 L 63 15 L 71 15 L 31 55 Z" fill="#f3b924" />
+              {/* Blue stripe */}
+              <path d="M 31 55 L 71 15 L 79 15 L 39 55 Z" fill="#2c3d8f" />
+              {/* Gray body */}
+              <path d="M 39 55 L 79 15 L 95 15 L 55 55 Z" fill="#899197" />
+            </svg>
+          </div>
+        );
+      case 'YP': // Air Premia
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 20 44" className="w-4 h-9 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="16" height="40" rx="8" fill="#ff5a19" />
+            </svg>
+          </div>
+        );
+      case '7C': // Jeju Air
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="45" fill="#ff6f00" />
+              <path d="M 25,50 Q 50,75 75,50 Q 50,60 25,50 Z" fill="#ffffff" />
+              <circle cx="50" cy="40" r="8" fill="#ffffff" />
+            </svg>
+          </div>
+        );
+      case 'MM': // Peach Aviation
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="45" fill="#d0006f" />
+              <path d="M 30,50 C 30,35 42,28 55,35 C 68,42 68,58 55,65 C 42,72 30,65 30,50 Z" fill="#ffffff" />
+              <circle cx="50" cy="50" r="10" fill="#d0006f" />
+            </svg>
+          </div>
+        );
+      case 'JL': // Japan Airlines
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="45" fill="#e10613" />
+              <path d="M 50,20 C 33,20 20,33 20,50 C 20,62 27,72 38,77 L 50,50 L 62,77 C 73,72 80,62 80,50 C 80,33 67,20 50,20 Z" fill="#ffffff" />
+              <circle cx="50" cy="50" r="12" fill="#e10613" />
+              <path d="M 45,50 L 55,50 L 50,25 Z" fill="#ffffff" />
+            </svg>
+          </div>
+        );
+      case 'NH': // All Nippon Airways
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 15,80 L 45,20 L 65,20 L 35,80 Z" fill="#002d72" />
+              <path d="M 40,80 L 70,20 L 80,20 L 50,80 Z" fill="#00a0e9" />
+            </svg>
+          </div>
+        );
+      case 'DL': // Delta Air Lines
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 15,80 L 50,15 L 85,80 L 50,65 Z" fill="#e01933" />
+              <path d="M 50,15 L 85,80 L 50,65 Z" fill="#9e1224" />
+            </svg>
+          </div>
+        );
+      case 'BA': // British Airways
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 50" className="w-11 h-6 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 10,40 L 45,10 L 90,10 L 55,40 Z" fill="#00247d" />
+              <path d="M 40,25 L 55,10 L 90,10 L 75,25 Z" fill="#cf142b" />
+            </svg>
+          </div>
+        );
+      case 'AF': // Air France
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 50" className="w-11 h-6 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 15,40 C 35,40 65,30 85,10 L 75,10 C 60,25 35,30 15,30 Z" fill="#ed2939" />
+            </svg>
+          </div>
+        );
+      case 'SQ': // Singapore Airlines
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 80" className="w-11 h-9 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 15,55 C 30,55 45,45 75,20 L 65,15 C 45,30 30,35 15,35 Z" fill="#e2a425" />
+              <path d="M 30,35 L 45,20 L 80,20 L 65,35 Z" fill="#e2a425" />
+              <circle cx="25" cy="25" r="4" fill="#e2a425" />
+            </svg>
+          </div>
+        );
+      case 'UA': // United Airlines
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="45" fill="#005da1" />
+              <circle cx="50" cy="50" r="45" stroke="#b1965a" strokeWidth="3" fill="none" />
+              <ellipse cx="50" cy="50" rx="30" ry="45" stroke="#ffffff" strokeWidth="2" fill="none" />
+              <ellipse cx="50" cy="50" rx="15" ry="45" stroke="#ffffff" strokeWidth="2" fill="none" />
+              <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff" strokeWidth="2" />
+              <path d="M 13,25 Q 50,40 87,25" stroke="#ffffff" strokeWidth="2" fill="none" />
+              <path d="M 13,75 Q 50,60 87,75" stroke="#ffffff" strokeWidth="2" fill="none" />
+            </svg>
+          </div>
+        );
+      case 'EK': // Emirates
+        return (
+          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="10" width="80" height="80" rx="10" fill="#d71920" />
+              <path d="M 30,35 Q 50,20 70,35 T 50,75 Z" stroke="#ffd700" strokeWidth="4.5" fill="none" />
+              <line x1="50" y1="30" x2="50" y2="70" stroke="#ffd700" strokeWidth="4.5" />
+            </svg>
+          </div>
+        );
+      default:
+        return (
+          <div className="relative flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 border border-blue-100 shadow-2xs shrink-0 font-sans group hover:scale-105 transition-transform duration-200">
+            <div className="absolute inset-0.5 rounded-full bg-blue-600 flex items-center justify-center text-white">
+              <Plane className="h-6 w-6 text-white rotate-45 transform" />
+            </div>
+            <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-800 text-[8px] text-white font-extrabold border border-white shadow-sm">
+              {code.slice(0, 2)}
+            </div>
+          </div>
+        );
+    }
+  };
+
   const outboundSegments = flight.outbound;
   const inboundSegments = flight.inbound;
 
@@ -66,196 +231,272 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
   const firstInbound = inboundSegments ? inboundSegments[0] : null;
   const lastInbound = inboundSegments ? inboundSegments[inboundSegments.length - 1] : null;
 
+  const outDateFormatted = formatKoreanDateString(searchQuery?.departureDate);
+  const inDateFormatted = searchQuery?.tripType === 'round-trip' ? formatKoreanDateString(searchQuery?.returnDate) : '';
+
   return (
     <div 
-      className={`bg-white border rounded-lg overflow-hidden transition-all duration-200 shadow-sm ${
-        expanded ? 'border-blue-600 shadow-md ring-1 ring-blue-600/10' : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
+      className={`bg-white border rounded-2xl overflow-hidden transition-all duration-300 shadow-xs hover:shadow-lg ${
+        expanded ? 'border-blue-600 shadow-md ring-1 ring-blue-600/5' : 'border-slate-200/80 hover:border-slate-300'
       }`}
       id={`flight-card-${flight.id}`}
     >
-      {/* Flight Tag Indicator */}
-      {tag && (
-        <div className="flex">
-          {tag === 'cheapest' && (
-            <span className="bg-green-100 text-green-800 text-[10px] font-bold px-3 py-1 rounded-br-xl uppercase tracking-wider">
-              최저가 💸
-            </span>
-          )}
-          {tag === 'fastest' && (
-            <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-br-xl uppercase tracking-wider">
-              가장 빠른 비행 ⚡
-            </span>
-          )}
-          {tag === 'best' && (
-            <span className="bg-blue-50 border-r border-b border-blue-200 text-blue-700 text-[10px] font-bold px-3 py-1 rounded-br-md uppercase tracking-wider">
-              추천 항공편 ⭐
-            </span>
-          )}
-        </div>
-      )}
+      {/* Flight Tags Row */}
+      <div className="flex flex-wrap items-center gap-1.5 px-6 pt-5">
+        {tag === 'cheapest' && (
+          <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-emerald-100 uppercase tracking-wider">
+            최저가 요금 💸
+          </span>
+        )}
+        {tag === 'fastest' && (
+          <span className="bg-amber-50 text-amber-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-amber-100 uppercase tracking-wider">
+            최단 비행시간 ⚡
+          </span>
+        )}
+        {tag === 'best' && (
+          <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-blue-100 uppercase tracking-wider">
+            최적 추천 일정 ⭐
+          </span>
+        )}
+        <span className="bg-teal-50/60 text-teal-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-teal-100/50">
+          플렉시블 티켓으로 업그레이드 가능
+        </span>
+      </div>
 
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
           
-          {/* Main Journeys Information */}
-          <div className="md:col-span-9 space-y-6">
+          {/* Left Panel: Flight Schedules */}
+          <div className="md:col-span-8 lg:col-span-9 space-y-5">
             
-            {/* OUTBOUND */}
+            {/* OUTBOUND SECTION */}
             <div className="flex items-center space-x-4">
-              <div className="h-10 w-10 bg-slate-100 border border-slate-200 rounded-md flex items-center justify-center text-lg shadow-2xs">
-                {firstOutbound.airline.logo}
-              </div>
-              <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 gap-4 items-center">
-                {/* Departure / Arrival Time */}
-                <div className="col-span-1">
-                  <span className="block text-base font-bold text-gray-800">{firstOutbound.departureTime}</span>
-                  <span className="block text-[11px] text-gray-500 font-medium font-sans">{firstOutbound.departureAirport.code} ({firstOutbound.departureAirport.city})</span>
+              {renderAirlineLogo(firstOutbound.airline.code, firstOutbound.airline.logo, firstOutbound.airline.name)}
+              <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4 items-center">
+                {/* Departure Time */}
+                <div className="text-left">
+                  <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{firstOutbound.departureTime}</span>
+                  <span className="block text-[11px] text-slate-400 font-bold font-sans mt-0.5">
+                    {firstOutbound.departureAirport.code} · {outDateFormatted || '가는 날'}
+                  </span>
                 </div>
 
                 {/* Timeline Vector */}
-                <div className="col-span-1 flex flex-col items-center justify-center relative px-2">
-                  <span className="text-[10px] text-gray-400 font-semibold mb-1">
-                    {flight.stopsOutbound === 0 ? '직항' : `경유 ${flight.stopsOutbound}회`}
-                  </span>
-                  <div className="w-full h-[1px] bg-slate-200 relative flex items-center justify-center">
-                    <div className="absolute h-1.5 w-1.5 rounded-full bg-blue-600"></div>
-                    {flight.stopsOutbound > 0 && (
-                      <div className="absolute h-2 w-2 rounded bg-red-600 border border-white"></div>
+                <div className="flex flex-col items-center justify-center relative px-1 sm:px-4">
+                  {/* Stops Badge */}
+                  <div className="z-10 bg-white px-2">
+                    {flight.stopsOutbound === 0 ? (
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-black">
+                        직항
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full font-black">
+                        경유 {flight.stopsOutbound}회
+                      </span>
                     )}
                   </div>
+
+                  {/* Horizontal Timeline Line */}
+                  <div className="w-full h-[2px] bg-slate-200 relative flex items-center justify-between -mt-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400 border border-white"></span>
+                    
+                    {/* Centered Highly Visible Blue Plane */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="bg-white px-1.5">
+                        <Plane className="h-4 w-4 text-blue-600 rotate-90 transform" />
+                      </div>
+                    </div>
+
+                    {flight.stopsOutbound > 0 && (
+                      <span className="h-2 w-2 rounded-full bg-rose-500 border border-white z-10"></span>
+                    )}
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400 border border-white"></span>
+                  </div>
+
+                  {/* Duration Text */}
+                  <span className="text-[11px] text-slate-500 font-bold mt-1">
+                    {formatDuration(flight.totalDurationOutbound)}
+                  </span>
+                  
                   {flight.stopsOutbound > 0 && (
-                    <span className="text-[9px] text-red-500 font-medium mt-1">
+                    <span className="text-[9px] text-rose-500 font-bold mt-0.5">
                       {outboundSegments.map((s, idx) => idx < outboundSegments.length - 1 ? s.arrivalAirport.code : '').filter(Boolean).join(', ')}
                     </span>
                   )}
                 </div>
 
-                {/* Arrival Info */}
-                <div className="col-span-1">
-                  <span className="block text-base font-bold text-gray-800">{lastOutbound.arrivalTime}</span>
-                  <span className="block text-[11px] text-gray-500 font-medium">{lastOutbound.arrivalAirport.code} ({lastOutbound.arrivalAirport.city})</span>
-                </div>
-
-                {/* Duration & Airline Details */}
-                <div className="hidden sm:block col-span-1 text-right">
-                  <span className="block text-xs font-semibold text-gray-700 flex items-center justify-end">
-                    <Clock className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                    {formatDuration(flight.totalDurationOutbound)}
+                {/* Arrival Time */}
+                <div className="text-right sm:text-center">
+                  <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{lastOutbound.arrivalTime}</span>
+                  <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
+                    {lastOutbound.arrivalAirport.code} · {outDateFormatted || '가는 날'}
                   </span>
-                  <span className="block text-[10px] text-gray-400 font-medium">{firstOutbound.airline.name}</span>
                 </div>
               </div>
             </div>
 
-            {/* INBOUND (Return flight if applicable) */}
+            {/* INBOUND SECTION */}
             {inboundSegments && firstInbound && lastInbound && (
               <div className="flex items-center space-x-4 pt-4 border-t border-slate-100">
-                <div className="h-10 w-10 bg-slate-100 border border-slate-200 rounded-md flex items-center justify-center text-lg shadow-2xs">
-                  {firstInbound.airline.logo}
-                </div>
-                <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 gap-4 items-center">
+                {renderAirlineLogo(firstInbound.airline.code, firstInbound.airline.logo, firstInbound.airline.name)}
+                <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4 items-center">
                   {/* Departure */}
-                  <div className="col-span-1">
-                    <span className="block text-base font-bold text-gray-800">{firstInbound.departureTime}</span>
-                    <span className="block text-[11px] text-gray-500 font-medium">{firstInbound.departureAirport.code} ({firstInbound.departureAirport.city})</span>
+                  <div className="text-left">
+                    <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{firstInbound.departureTime}</span>
+                    <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
+                      {firstInbound.departureAirport.code} · {inDateFormatted || '오는 날'}
+                    </span>
                   </div>
 
-                  {/* Visual Timeline */}
-                  <div className="col-span-1 flex flex-col items-center justify-center relative px-2">
-                    <span className="text-[10px] text-gray-400 font-semibold mb-1">
-                      {flight.stopsInbound === 0 ? '직항' : `경유 ${flight.stopsInbound}회`}
-                    </span>
-                    <div className="w-full h-[1px] bg-slate-200 relative flex items-center justify-center">
-                      <div className="absolute h-1.5 w-1.5 rounded-full bg-blue-600"></div>
-                      {flight.stopsInbound && flight.stopsInbound > 0 && (
-                        <div className="absolute h-2 w-2 rounded bg-red-600 border border-white"></div>
+                  {/* Timeline Vector */}
+                  <div className="flex flex-col items-center justify-center relative px-1 sm:px-4">
+                    {/* Stops Badge */}
+                    <div className="z-10 bg-white px-2">
+                      {flight.stopsInbound === 0 ? (
+                        <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-black">
+                          직항
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full font-black">
+                          경유 {flight.stopsInbound}회
+                        </span>
                       )}
                     </div>
+
+                    {/* Timeline Line */}
+                    <div className="w-full h-[2px] bg-slate-200 relative flex items-center justify-between -mt-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400 border border-white"></span>
+                      
+                      {/* Centered Highly Visible Blue Plane */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="bg-white px-1.5">
+                          <Plane className="h-4 w-4 text-blue-600 rotate-90 transform" />
+                        </div>
+                      </div>
+
+                      {flight.stopsInbound && flight.stopsInbound > 0 && (
+                        <span className="h-2 w-2 rounded-full bg-rose-500 border border-white z-10"></span>
+                      )}
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400 border border-white"></span>
+                    </div>
+
+                    {/* Duration */}
+                    <span className="text-[11px] text-slate-500 font-bold mt-1">
+                      {formatDuration(flight.totalDurationInbound || 0)}
+                    </span>
+
                     {flight.stopsInbound && flight.stopsInbound > 0 && (
-                      <span className="text-[9px] text-red-500 font-medium mt-1">
+                      <span className="text-[9px] text-rose-500 font-bold mt-0.5">
                         {inboundSegments.map((s, idx) => idx < inboundSegments.length - 1 ? s.arrivalAirport.code : '').filter(Boolean).join(', ')}
                       </span>
                     )}
                   </div>
 
                   {/* Arrival */}
-                  <div className="col-span-1">
-                    <span className="block text-base font-bold text-gray-800">{lastInbound.arrivalTime}</span>
-                    <span className="block text-[11px] text-gray-500 font-medium">{lastInbound.arrivalAirport.code} ({lastInbound.arrivalAirport.city})</span>
-                  </div>
-
-                  {/* Duration */}
-                  <div className="hidden sm:block col-span-1 text-right">
-                    <span className="block text-xs font-semibold text-gray-700 flex items-center justify-end">
-                      <Clock className="h-3.5 w-3.5 mr-1 text-gray-400" />
-                      {formatDuration(flight.totalDurationInbound || 0)}
+                  <div className="text-right sm:text-center">
+                    <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{lastInbound.arrivalTime}</span>
+                    <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
+                      {lastInbound.arrivalAirport.code} · {inDateFormatted || '오는 날'}
                     </span>
-                    <span className="block text-[10px] text-gray-400 font-medium">{firstInbound.airline.name}</span>
                   </div>
                 </div>
               </div>
             )}
 
-          </div>
-
-          {/* Booking Panel (Price and Action button) */}
-          <div className="md:col-span-3 md:border-l md:border-slate-100 md:pl-6 text-center md:text-right flex flex-row md:flex-col justify-between md:justify-center items-center h-full gap-4">
-            <div>
-              <div className="flex flex-col items-center md:items-end justify-center space-y-1">
-                {flight.baggageIncluded ? (
-                  <span className="text-[10px] text-green-700 bg-green-50 border border-green-100 px-1.5 py-0.5 rounded flex items-center font-semibold">
-                    <Luggage className="h-3 w-3 mr-0.5" /> 위탁수하물 포함
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded flex items-center font-semibold">
-                    <Luggage className="h-3 w-3 mr-0.5" /> 수하물 미포함
-                  </span>
-                )}
-              </div>
-              <div className="mt-1 text-2xl font-black text-gray-900 font-sans">
-                {formatPrice(flight.price, currency)}
-              </div>
-              <span className="text-[10px] text-gray-400 font-medium block">세금 포함가</span>
+            {/* Carrier Name */}
+            <div className="pt-2 text-xs sm:text-[13px] text-slate-700 font-extrabold flex items-center gap-1.5">
+              <span className="inline-block w-1 h-3 bg-blue-500 rounded-full"></span>
+              <span>{firstOutbound.airline.name}</span>
+              {inboundSegments && firstInbound && firstInbound.airline.name !== firstOutbound.airline.name && (
+                <>
+                  <span className="text-slate-300">/</span>
+                  <span>{firstInbound.airline.name}</span>
+                </>
+              )}
             </div>
 
-            <div className="space-y-1.5 w-full max-w-[120px] sm:max-w-none">
+          </div>
+
+          {/* Right Panel: Pricing & Booking Actions */}
+          <div className="md:col-span-4 lg:col-span-3 border-t md:border-t-0 md:border-l border-slate-100 p-6 flex flex-col justify-between items-stretch text-right bg-slate-50/30 md:bg-transparent rounded-b-2xl md:rounded-r-2xl h-full min-h-[160px]">
+            
+            {/* Baggage & Cabin Class Indicators */}
+            <div className="flex flex-col items-end space-y-1.5 mb-2">
+              <span className="text-[11px] text-slate-400 font-bold">
+                {getCabinClassLabel(firstOutbound.cabinClass)}
+              </span>
+              
+              {/* Luxury-style Baggage Check Icons */}
+              <div className="flex items-center space-x-2">
+                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title="기내 수하물 포함">
+                  <Luggage className="h-4 w-4 text-slate-500" />
+                  <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✓</span>
+                </div>
+                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title="위탁 수하물 포함 여부">
+                  <Luggage className="h-4 w-4 text-slate-500" />
+                  {flight.baggageIncluded ? (
+                    <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✓</span>
+                  ) : (
+                    <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-slate-300 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✕</span>
+                  )}
+                </div>
+                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title="모바일 탑승권 지원">
+                  <Clock className="h-4 w-4 text-slate-500" />
+                  <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✓</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Price section */}
+            <div className="my-3">
+              <div className="flex items-center justify-end space-x-1">
+                <span className="text-2xl font-black text-slate-900 font-sans tracking-tight">
+                  {formatPrice(flight.price, currency)}
+                </span>
+                <button 
+                  type="button" 
+                  className="p-0.5 text-slate-300 hover:text-slate-500 transition-colors cursor-pointer"
+                  title="세금 및 유류할증료 포함 총액"
+                >
+                  <AlertCircle className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <span className="text-[10px] text-slate-400 font-bold block mt-0.5">왕복·성인 1인 기준 총액</span>
+            </div>
+
+            {/* Structured Buttons */}
+            <div className="space-y-2 mt-2">
               <button
                 type="button"
                 onClick={() => onBook(flight)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2 rounded transition-all shadow-sm cursor-pointer"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center space-x-1"
                 id={`book-flight-btn-${flight.id}`}
               >
-                예약 선택하기
+                <span>일정 선택 및 예약</span>
               </button>
 
-              <a
-                href={getRealBookingUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] py-1.5 rounded transition-all shadow-sm flex items-center justify-center space-x-1 cursor-pointer"
-                id={`real-book-flight-btn-${flight.id}`}
-              >
-                <span>실제 최저가 예약</span>
-                <ExternalLink className="h-3 w-3" />
-              </a>
-              
               <button
                 type="button"
                 onClick={() => setExpanded(!expanded)}
-                className="w-full text-gray-500 hover:text-gray-800 text-[11px] font-semibold flex items-center justify-center space-x-0.5"
+                className="h-9 w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 font-extrabold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-3xs"
               >
-                <span>비행 정보</span>
-                {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                <span>비행 정보 보기</span>
+                {expanded ? (
+                  <ChevronUp className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                )}
               </button>
             </div>
+
           </div>
 
         </div>
 
         {/* Dynamic Carbon Emission Badge */}
-        <div className="mt-4 flex items-center space-x-2 text-[10px] text-green-700 bg-green-50/50 border border-green-100/50 p-2 rounded-xl">
-          <Leaf className="h-3.5 w-3.5 text-green-600 shrink-0" />
-          <span>친환경 여정: 이 비행은 다른 경로 대비 이산화탄소 배출량이 약 <b>{flight.carbonEmissionKg}kg</b> 낮습니다.</span>
+        <div className="mt-4 flex items-center space-x-2 text-[10px] text-emerald-700 bg-emerald-50/50 border border-emerald-100/50 p-2.5 rounded-xl font-medium">
+          <Leaf className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+          <span>친환경 일정: 이 비행은 다른 경로 대비 이산화탄소 배출량이 약 <b>{flight.carbonEmissionKg}kg</b> 낮습니다.</span>
         </div>
       </div>
 

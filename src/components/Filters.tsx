@@ -1,17 +1,29 @@
 import React from 'react';
-import { SlidersHorizontal, DollarSign, Clock, ShieldCheck, Star, RefreshCw } from 'lucide-react';
+import { SlidersHorizontal, ShieldCheck, Star, RefreshCw } from 'lucide-react';
 import { FilterOptions, formatPrice } from '../types';
+import { getTranslation } from '../utils/translations';
 
 interface FiltersProps {
-  type: 'flights' | 'hotels';
+  type: 'flights' | 'hotels' | 'packages';
   filters: FilterOptions;
   setFilters: React.Dispatch<React.SetStateAction<FilterOptions>>;
   availableAirlines?: { code: string; name: string }[];
   maxPriceLimit: number;
-  currency?: 'USD' | 'KRW';
+  currency?: string;
+  language?: 'KO' | 'EN';
+  selectedLanguageCode?: string;
 }
 
-export default function Filters({ type, filters, setFilters, availableAirlines = [], maxPriceLimit, currency = 'USD' }: FiltersProps) {
+export default function Filters({
+  type,
+  filters,
+  setFilters,
+  availableAirlines = [],
+  maxPriceLimit,
+  currency = 'USD',
+  language = 'KO',
+  selectedLanguageCode = 'ko',
+}: FiltersProps) {
   
   const handleStopsChange = (stops: any) => {
     setFilters(f => ({ ...f, stops }));
@@ -68,12 +80,95 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
     'Rooftop Bar',
   ];
 
+  const getAmenityLabel = (amenity: string) => {
+    switch (amenity) {
+      case 'Free WiFi':
+        return selectedLanguageCode === 'ko' ? '무료 와이파이' :
+               selectedLanguageCode === 'ja' ? '無料Wi-Fi' :
+               selectedLanguageCode.startsWith('zh') ? '免费WiFi' :
+               selectedLanguageCode === 'es' || selectedLanguageCode.startsWith('es') ? 'Wi-Fi gratis' :
+               selectedLanguageCode === 'fr' ? 'Wi-Fi gratuit' :
+               selectedLanguageCode === 'de' ? 'Kostenloses WLAN' :
+               selectedLanguageCode === 'id' ? 'WiFi Gratis' :
+               selectedLanguageCode === 'vi' ? 'WiFi miễn phí' :
+               selectedLanguageCode === 'th' ? 'ฟรี Wi-Fi' : 'Free WiFi';
+      case 'Infinity Pool':
+        return selectedLanguageCode === 'ko' ? '야외/인피니提 풀' :
+               selectedLanguageCode === 'ja' ? 'インフィニティプール' :
+               selectedLanguageCode.startsWith('zh') ? '无边泳池' :
+               selectedLanguageCode === 'es' || selectedLanguageCode.startsWith('es') ? 'Alberca infinita' :
+               selectedLanguageCode === 'fr' ? 'Piscine à débordement' :
+               selectedLanguageCode === 'de' ? 'Infinity-Pool' :
+               selectedLanguageCode === 'id' ? 'Kolam Renang' :
+               selectedLanguageCode === 'vi' ? 'Bể bơi vô cực' :
+               selectedLanguageCode === 'th' ? 'สระว่ายน้ำอินฟินิตี้' : 'Infinity Pool';
+      case 'Luxury Spa':
+        return selectedLanguageCode === 'ko' ? '스파 & 마사지' :
+               selectedLanguageCode === 'ja' ? '高級スパ' :
+               selectedLanguageCode.startsWith('zh') ? '豪华水疗' :
+               selectedLanguageCode === 'es' || selectedLanguageCode.startsWith('es') ? 'Spa de lujo' :
+               selectedLanguageCode === 'fr' ? 'Spa de luxe' :
+               selectedLanguageCode === 'de' ? 'Luxus-Spa' :
+               selectedLanguageCode === 'id' ? 'Spa Mewah' :
+               selectedLanguageCode === 'vi' ? 'Spa sang trọng' :
+               selectedLanguageCode === 'th' ? 'สปาสุดหรู' : 'Luxury Spa';
+      case 'Fitness Center':
+        return selectedLanguageCode === 'ko' ? '피트니스 센터' :
+               selectedLanguageCode === 'ja' ? 'フィットネスセンター' :
+               selectedLanguageCode.startsWith('zh') ? '健身中心' :
+               selectedLanguageCode === 'es' || selectedLanguageCode.startsWith('es') ? 'Gimnasio' :
+               selectedLanguageCode === 'fr' ? 'Salle de sport' :
+               selectedLanguageCode === 'de' ? 'Fitnesscenter' :
+               selectedLanguageCode === 'id' ? 'Pusat Kebugaran' :
+               selectedLanguageCode === 'vi' ? 'Trung tâm thể dục' :
+               selectedLanguageCode === 'th' ? 'ฟิตเนสเซ็นเตอร์' : 'Fitness Center';
+      case 'Free Breakfast':
+        return selectedLanguageCode === 'ko' ? '무료 조식' :
+               selectedLanguageCode === 'ja' ? '無料朝食' :
+               selectedLanguageCode.startsWith('zh') ? '免费早餐' :
+               selectedLanguageCode === 'es' || selectedLanguageCode.startsWith('es') ? 'Desayuno gratis' :
+               selectedLanguageCode === 'fr' ? 'Petit-déjeuner gratuit' :
+               selectedLanguageCode === 'de' ? 'Kostenloses Frühstück' :
+               selectedLanguageCode === 'id' ? 'Sarapan Gratis' :
+               selectedLanguageCode === 'vi' ? 'Bữa sáng miễn phí' :
+               selectedLanguageCode === 'th' ? 'ฟรีอาหารเช้า' : 'Free Breakfast';
+      case 'Rooftop Bar':
+        return selectedLanguageCode === 'ko' ? '루프탑 바' :
+               selectedLanguageCode === 'ja' ? 'ルーフトップバー' :
+               selectedLanguageCode.startsWith('zh') ? '屋顶酒吧' :
+               selectedLanguageCode === 'es' || selectedLanguageCode.startsWith('es') ? 'Bar en la azotea' :
+               selectedLanguageCode === 'fr' ? 'Bar sur le toit' :
+               selectedLanguageCode === 'de' ? 'Rooftop-Bar' :
+               selectedLanguageCode === 'id' ? 'Bar Atap' :
+               selectedLanguageCode === 'vi' ? 'Quầy bar tầng thượng' :
+               selectedLanguageCode === 'th' ? 'รูฟท็อปบาร์' : 'Rooftop Bar';
+      default:
+        return amenity;
+    }
+  };
+
+  const getStarLabel = (star: number) => {
+    switch (selectedLanguageCode) {
+      case 'ko': return `${star}성급`;
+      case 'ja': return `${star}星`;
+      case 'zh-CN': return `${star}星级`;
+      case 'zh-TW': return `${star}星級`;
+      case 'es': case 'es-AR': case 'es-MX': return `${star} estrellas`;
+      case 'fr': return `${star} étoiles`;
+      case 'de': return `${star} Sterne`;
+      case 'id': return `Bintang ${star}`;
+      case 'vi': return `${star} sao`;
+      case 'th': return `${star} ดาว`;
+      default: return `${star} Star`;
+    }
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm space-y-5" id="filters-container">
       <div className="flex justify-between items-center border-b border-slate-200 pb-2">
         <h3 className="text-xs font-bold text-slate-800 uppercase flex items-center space-x-2">
           <SlidersHorizontal className="h-3.5 w-3.5 text-blue-600" />
-          <span>필터 상세설정</span>
+          <span>{getTranslation('filtersDetailedSetting', selectedLanguageCode)}</span>
         </h3>
         <button
           type="button"
@@ -82,14 +177,14 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
           id="reset-filters-btn"
         >
           <RefreshCw className="h-2.5 w-2.5" />
-          <span>초기화</span>
+          <span>{getTranslation('reset', selectedLanguageCode)}</span>
         </button>
       </div>
 
       {/* Price Filter */}
       <div className="space-y-1.5">
         <div className="flex justify-between text-xs font-bold text-slate-700">
-          <span>최대 예산</span>
+          <span>{getTranslation('maxBudget', selectedLanguageCode)}</span>
           <span className="text-blue-600 font-mono font-black">{formatPrice(filters.maxPrice, currency)}</span>
         </div>
         <input
@@ -108,12 +203,19 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
         </div>
       </div>
 
-      {/* FLIGHT ONLY FILTERS */}
-      {type === 'flights' ? (
-        <>
+      {/* FLIGHT FILTERS (for flights or packages) */}
+      {(type === 'flights' || type === 'packages') && (
+        <div className="space-y-4 border-t border-slate-100 pt-3">
+          {type === 'packages' && (
+            <span className="block text-[10px] font-black text-blue-600 uppercase tracking-wider">
+              {getTranslation('flightOptions', selectedLanguageCode)}
+            </span>
+          )}
           {/* Stops Filter */}
           <div className="space-y-1.5">
-            <span className="block text-xs font-bold text-slate-700">경유 횟수</span>
+            <span className="block text-xs font-bold text-slate-700">
+              {getTranslation('stops', selectedLanguageCode)}
+            </span>
             <div className="grid grid-cols-4 gap-1 bg-slate-50 p-0.5 rounded">
               {(['any', 'direct', '1-stop', '2-stops'] as const).map((opt) => (
                 <button
@@ -126,7 +228,10 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
                       : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  {opt === 'any' ? '전체' : opt === 'direct' ? '직항' : opt === '1-stop' ? '1회' : '2회+'}
+                  {opt === 'any' ? getTranslation('all', selectedLanguageCode) :
+                   opt === 'direct' ? getTranslation('direct', selectedLanguageCode) :
+                   opt === '1-stop' ? getTranslation('oneStop', selectedLanguageCode) :
+                   getTranslation('twoStops', selectedLanguageCode)}
                 </button>
               ))}
             </div>
@@ -135,7 +240,9 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
           {/* Airlines Filter */}
           {availableAirlines.length > 0 && (
             <div className="space-y-1.5 pt-1">
-              <span className="block text-xs font-bold text-slate-700">항공사 선택</span>
+              <span className="block text-xs font-bold text-slate-700">
+                {getTranslation('selectAirlines', selectedLanguageCode)}
+              </span>
               <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 {availableAirlines.map((airline) => (
                   <label key={airline.code} className="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer hover:text-slate-900 font-medium">
@@ -151,13 +258,22 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
               </div>
             </div>
           )}
-        </>
-      ) : (
-        /* HOTEL ONLY FILTERS */
-        <>
+        </div>
+      )}
+
+      {/* HOTEL FILTERS (for hotels or packages) */}
+      {(type === 'hotels' || type === 'packages') && (
+        <div className="space-y-4 border-t border-slate-100 pt-3">
+          {type === 'packages' && (
+            <span className="block text-[10px] font-black text-blue-600 uppercase tracking-wider">
+              {getTranslation('hotelOptions', selectedLanguageCode) || '호텔 옵션'}
+            </span>
+          )}
           {/* Hotel Rating Stars */}
           <div className="space-y-1.5">
-            <span className="block text-xs font-bold text-slate-700">호텔 성급</span>
+            <span className="block text-xs font-bold text-slate-700">
+              {getTranslation('hotelRating', selectedLanguageCode)}
+            </span>
             <div className="flex space-x-1">
               {[3, 4, 5].map((star) => (
                 <button
@@ -171,7 +287,7 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
                   }`}
                 >
                   <Star className={`h-3 w-3 ${filters.hotelRating === star ? 'fill-blue-600 text-blue-600' : 'text-slate-400'}`} />
-                  <span>{star}성급</span>
+                  <span>{getStarLabel(star)}</span>
                 </button>
               ))}
             </div>
@@ -179,7 +295,9 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
 
           {/* Hotel Amenities */}
           <div className="space-y-1.5 pt-1">
-            <span className="block text-xs font-bold text-slate-700">인기 편의시설</span>
+            <span className="block text-xs font-bold text-slate-700">
+              {getTranslation('amenities', selectedLanguageCode)}
+            </span>
             <div className="space-y-1.5">
               {hotelAmenitiesList.map((amenity) => (
                 <label key={amenity} className="flex items-center space-x-2 text-xs text-slate-600 cursor-pointer hover:text-slate-900 font-medium">
@@ -189,27 +307,22 @@ export default function Filters({ type, filters, setFilters, availableAirlines =
                     onChange={() => handleAmenityToggle(amenity)}
                     className="rounded border-slate-300 text-blue-600 focus:ring-blue-600 h-3.5 w-3.5 accent-blue-600"
                   />
-                  <span>
-                    {amenity === 'Free WiFi' ? '무료 와이파이' :
-                     amenity === 'Infinity Pool' ? '야외/인피니티 풀' :
-                     amenity === 'Luxury Spa' ? '스파 & 마사지' :
-                     amenity === 'Fitness Center' ? '피트니스 센터' :
-                     amenity === 'Free Breakfast' ? '무료 조식' :
-                     amenity === 'Rooftop Bar' ? '루프탑 바' : amenity}
-                  </span>
+                  <span>{getAmenityLabel(amenity)}</span>
                 </label>
               ))}
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Sustainable badge info */}
       <div className="bg-blue-50/50 border border-blue-100 rounded p-2.5 flex space-x-2">
         <ShieldCheck className="h-3.5 w-3.5 text-blue-600 shrink-0 mt-0.5" />
         <div className="text-[10px] text-blue-800 leading-relaxed font-semibold">
-          <span className="font-bold block text-blue-900">이산화탄소 저감 표기</span>
-          YASKYTRIP은 평균 배출량 대비 탄소 배출이 더 적은 비행편에 그린 배지를 표기합니다.
+          <span className="font-bold block text-blue-900">
+            {getTranslation('co2Labeling', selectedLanguageCode)}
+          </span>
+          {getTranslation('co2LabelingDesc', selectedLanguageCode)}
         </div>
       </div>
     </div>

@@ -138,7 +138,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
           id="auth-modal-card"
         >
           {/* Header background decoration */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-blue-600"></div>
+          <div className="absolute top-0 left-0 right-0 h-2 bg-red-600"></div>
 
           {/* Close button */}
           <button
@@ -152,7 +152,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
           <div className="p-8 pt-10">
             {/* Title */}
             <div className="text-center mb-6">
-              <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold tracking-wider mb-2">
+              <span className="inline-block px-3 py-1 bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100 text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-pink-500 rounded-full text-xs font-black tracking-wider mb-2">
                 YASKYTRIP
               </span>
               <h3 className="text-xl font-bold text-slate-800" id="auth-modal-title">
@@ -160,7 +160,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
               </h3>
               <p className="text-xs text-slate-500 mt-1">
                 {mode === 'login' 
-                  ? '야스키트립에서 완벽한 여행 상품을 예약하세요.' 
+                  ? '야스카이트립에서 완벽한 여행 상품을 예약하세요.' 
                   : '회원이 되시면 더 많은 혜택과 맞춤 추천을 드립니다.'}
               </p>
             </div>

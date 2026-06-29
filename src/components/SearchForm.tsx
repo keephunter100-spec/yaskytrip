@@ -1,28 +1,71 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plane, Hotel, Calendar, Users, ArrowLeftRight, Search, MapPin, ChevronDown, Minus, Plus, Check } from 'lucide-react';
+import { Plane, Hotel, Calendar, Users, ArrowLeftRight, Search, MapPin, ChevronDown, Minus, Plus, Check, DoorOpen } from 'lucide-react';
 import { CITIES } from '../data';
 import { SearchQuery } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { getTranslation } from '../utils/translations';
 
 interface SearchFormProps {
   onSearch: (query: SearchQuery) => void;
   initialQuery?: SearchQuery;
+  language?: 'KO' | 'EN';
+  selectedLanguageCode?: string;
 }
 
-// Mapped helper for English to Korean City Name Translation
-const getKoreanCityName = (cityName: string) => {
-  const nameMap: { [key: string]: string } = {
-    'Seoul': '서울',
-    'Tokyo': '도쿄',
-    'New York': '뉴욕',
-    'London': '런던',
-    'Paris': '파리',
-    'Singapore': '싱가포르',
-    'Sydney': '시드니',
-    'Honolulu': '호놀룰루',
-    'Fukuoka': '후쿠오카',
+// Mapped helper for English to Local City Name Translation
+const getKoreanCityName = (cityName: string, selectedLanguageCode: string = 'ko') => {
+  const nameMap: { [lang: string]: { [key: string]: string } } = {
+    ko: {
+      'Seoul': '서울',
+      'Tokyo': '도쿄',
+      'New York': '뉴욕',
+      'London': '런던',
+      'Paris': '파리',
+      'Singapore': '싱가포르',
+      'Sydney': '시드니',
+      'Honolulu': '호놀룰루',
+      'Fukuoka': '후쿠오카',
+    },
+    ja: {
+      'Seoul': 'ソウル',
+      'Tokyo': '東京',
+      'New York': 'ニューヨーク',
+      'London': 'ロンドン',
+      'Paris': 'パリ',
+      'Singapore': 'シンガポール',
+      'Sydney': 'シドニー',
+      'Honolulu': 'ホノルル',
+      'Fukuoka': '福岡',
+    },
+    'zh-CN': {
+      'Seoul': '首尔',
+      'Tokyo': '东京',
+      'New York': '纽约',
+      'London': '伦敦',
+      'Paris': '巴黎',
+      'Singapore': '新加坡',
+      'Sydney': '悉尼',
+      'Honolulu': '檀香山',
+      'Fukuoka': '福冈',
+    },
+    'zh-TW': {
+      'Seoul': '首爾',
+      'Tokyo': '東京',
+      'New York': '紐約',
+      'London': '倫敦',
+      'Paris': '巴黎',
+      'Singapore': '新加坡',
+      'Sydney': '雪梨',
+      'Honolulu': '檀香山',
+      'Fukuoka': '福岡',
+    }
   };
-  return nameMap[cityName] || cityName;
+  const langKey = selectedLanguageCode === 'ko' ? 'ko' :
+                  selectedLanguageCode === 'ja' ? 'ja' :
+                  selectedLanguageCode === 'zh-CN' ? 'zh-CN' :
+                  selectedLanguageCode === 'zh-TW' ? 'zh-TW' : 'en';
+  if (langKey === 'en') return cityName;
+  return nameMap[langKey]?.[cityName] || cityName;
 };
 
 // Retrieve first airport code dynamically
@@ -34,8 +77,8 @@ const getAirportCodeForCity = (cityName: string) => {
   return '';
 };
 
-// Robust date formatting with no timezone shift
-const formatKoreanDate = (dateStr: string) => {
+// Robust date formatting supporting multiple locales
+const formatKoreanDate = (dateStr: string, selectedLanguageCode: string = 'ko') => {
   if (!dateStr) return '';
   const parts = dateStr.split('-');
   if (parts.length === 3) {
@@ -43,15 +86,30 @@ const formatKoreanDate = (dateStr: string) => {
     const month = parseInt(parts[1], 10);
     const day = parseInt(parts[2], 10);
     const date = new Date(year, month - 1, day);
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    const dayOfWeek = days[date.getDay()];
-    return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
+    if (selectedLanguageCode === 'ko') {
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      const dayOfWeek = days[date.getDay()];
+      return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
+    } else if (selectedLanguageCode === 'ja') {
+      const days = ['日', '月', '火', '水', '木', '金', '土'];
+      const dayOfWeek = days[date.getDay()];
+      return `${year}年 ${month}月 ${day}日 (${dayOfWeek})`;
+    } else if (selectedLanguageCode.startsWith('zh')) {
+      const days = ['日', '一', '二', '三', '四', '五', '六'];
+      const dayOfWeek = days[date.getDay()];
+      return `${year}年 ${month}月 ${day}日 (周${dayOfWeek})`;
+    } else {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayOfWeek = days[date.getDay()];
+      return `${months[month - 1]} ${day}, ${year} (${dayOfWeek})`;
+    }
   }
   return dateStr;
 };
 
-export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) {
-  const [activeType, setActiveType] = useState<'flights' | 'hotels'>(initialQuery?.type || 'flights');
+export default function SearchForm({ onSearch, initialQuery, language = 'KO', selectedLanguageCode = 'ko' }: SearchFormProps) {
+  const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages'>(initialQuery?.type || 'flights');
   const [tripType, setTripType] = useState<'round-trip' | 'one-way'>(initialQuery?.tripType || 'round-trip');
   const [cabinClass, setCabinClass] = useState<'economy' | 'premium' | 'business' | 'first'>(initialQuery?.cabinClass || 'economy');
 
@@ -77,6 +135,7 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
   const [showToSuggestions, setShowToSuggestions] = useState(false);
   const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
   const [showClassDropdown, setShowClassDropdown] = useState(false);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
 
   // Focus simulation
   const [isFromFocused, setIsFromFocused] = useState(false);
@@ -89,6 +148,27 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
 
   // For accommodations search in flight tab (aesthetic checkbox)
   const [searchHotelTogether, setSearchHotelTogether] = useState(true);
+
+  // Sync internal state when initialQuery updates from external triggers (like AI Semantic Search)
+  useEffect(() => {
+    if (initialQuery) {
+      setActiveType(initialQuery.type || 'flights');
+      setTripType(initialQuery.tripType || 'round-trip');
+      setCabinClass(initialQuery.cabinClass || 'economy');
+      setFromCity(initialQuery.fromCity || 'Seoul');
+      setToCity(initialQuery.toCity || 'Tokyo');
+      setDepartureDate(initialQuery.departureDate || today);
+      setReturnDate(initialQuery.returnDate || nextWeek);
+    }
+  }, [
+    initialQuery?.type, 
+    initialQuery?.tripType, 
+    initialQuery?.cabinClass, 
+    initialQuery?.fromCity, 
+    initialQuery?.toCity, 
+    initialQuery?.departureDate, 
+    initialQuery?.returnDate
+  ]);
 
   // Click outside to close suggestion dropdowns
   useEffect(() => {
@@ -106,6 +186,7 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
       }
       if (classRef.current && !classRef.current.contains(event.target as Node)) {
         setShowClassDropdown(false);
+        setShowRoomDropdown(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -152,12 +233,56 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
 
   const getCabinClassLabel = (cls: string) => {
     switch (cls) {
-      case 'economy': return '일반석';
-      case 'premium': return '프리미엄 일반석';
-      case 'business': return '비즈니스석';
-      case 'first': return '일등석';
-      default: return '일반석';
+      case 'economy':
+        return selectedLanguageCode === 'ko' ? '일반석' :
+               selectedLanguageCode === 'ja' ? 'エコノミー' :
+               selectedLanguageCode.startsWith('zh') ? '经济舱' : 'Economy';
+      case 'premium':
+        return selectedLanguageCode === 'ko' ? '프리미엄 일반석' :
+               selectedLanguageCode === 'ja' ? 'プレミアムエコノミー' :
+               selectedLanguageCode.startsWith('zh') ? '超级经济舱' : 'Premium Economy';
+      case 'business':
+        return selectedLanguageCode === 'ko' ? '비즈니스석' :
+               selectedLanguageCode === 'ja' ? 'ビジネス' :
+               selectedLanguageCode.startsWith('zh') ? '公务舱' : 'Business';
+      case 'first':
+        return selectedLanguageCode === 'ko' ? '일등석' :
+               selectedLanguageCode === 'ja' ? 'ファースト' :
+               selectedLanguageCode.startsWith('zh') ? '头等舱' : 'First';
+      default:
+        return 'Economy';
     }
+  };
+
+  const isEn = selectedLanguageCode !== 'ko';
+  const t = {
+    flights: getTranslation('flights', selectedLanguageCode),
+    hotels: getTranslation('hotels', selectedLanguageCode),
+    packages: getTranslation('packages', selectedLanguageCode),
+    roundTrip: getTranslation('roundTrip', selectedLanguageCode),
+    oneWay: getTranslation('oneWay', selectedLanguageCode),
+    departure: getTranslation('departure', selectedLanguageCode),
+    arrival: getTranslation('destination', selectedLanguageCode),
+    destinationCity: selectedLanguageCode === 'ko' ? '숙박할 도시' : 'Destination',
+    enterDestination: selectedLanguageCode === 'ko' ? '도시 또는 호텔명 입력' : 'Search city or hotel...',
+    departureDate: getTranslation('departureDate', selectedLanguageCode),
+    returnDate: getTranslation('returnDate', selectedLanguageCode),
+    checkInDate: selectedLanguageCode === 'ko' ? '체크인' : 'Check-in',
+    checkOutDate: selectedLanguageCode === 'ko' ? '체크아웃' : 'Check-out',
+    passengers: getTranslation('travelers', selectedLanguageCode),
+    roomAndGuests: selectedLanguageCode === 'ko' ? '객실 및 투숙객' : 'Rooms & Guests',
+    searchFlights: getTranslation('searchBtn', selectedLanguageCode),
+    searchHotels: getTranslation('searchBtn', selectedLanguageCode),
+    searchPackages: getTranslation('searchBtn', selectedLanguageCode),
+    adults: selectedLanguageCode === 'ko' ? '성인' : 'Adults',
+    children: selectedLanguageCode === 'ko' ? '소아' : 'Children',
+    infants: selectedLanguageCode === 'ko' ? '유아' : 'Infants',
+    adultsDesc: selectedLanguageCode === 'ko' ? '만 12세 이상' : 'Age 12 or above',
+    childrenDesc: selectedLanguageCode === 'ko' ? '만 2세 ~ 11세' : 'Age 2 to 11',
+    infantsDesc: selectedLanguageCode === 'ko' ? '만 2세 미만' : 'Under age 2',
+    rooms: selectedLanguageCode === 'ko' ? '객실' : 'Rooms',
+    guests: getTranslation('guests', selectedLanguageCode),
+    done: selectedLanguageCode === 'ko' ? '선택 완료' : 'Done',
   };
 
   return (
@@ -168,14 +293,14 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
       {/* Search Type Selectors & Settings Row */}
-      <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/10 pb-5 mb-6 gap-4">
+      <div className="relative z-30 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/10 pb-5 mb-6 gap-4">
         
         {/* Main Tab Triggers */}
         <div className="flex space-x-1 bg-white/10 p-1 rounded-xl backdrop-blur-md">
           <button
             type="button"
             onClick={() => setActiveType('flights')}
-            className={`flex items-center space-x-2 px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
               activeType === 'flights'
                 ? 'bg-white text-blue-900 shadow-lg'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
@@ -183,12 +308,12 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
             id="type-select-flights"
           >
             <Plane className="h-4 w-4" />
-            <span>항공권</span>
+            <span>{t.flights}</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveType('hotels')}
-            className={`flex items-center space-x-2 px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
               activeType === 'hotels'
                 ? 'bg-white text-blue-900 shadow-lg'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
@@ -196,12 +321,29 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
             id="type-select-hotels"
           >
             <Hotel className="h-4 w-4" />
-            <span>호텔</span>
+            <span>{t.hotels}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveType('packages')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              activeType === 'packages'
+                ? 'bg-white text-blue-900 shadow-lg'
+                : 'text-white/80 hover:text-white hover:bg-white/5'
+            }`}
+            id="type-select-packages"
+          >
+            <span className="flex items-center -space-x-1 mr-1">
+              <Plane className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-[9px] font-bold text-current/70 shrink-0 self-center">+</span>
+              <Hotel className="h-3.5 w-3.5 shrink-0" />
+            </span>
+            <span>{t.packages}</span>
           </button>
         </div>
 
         {/* Flight specific class & way filters */}
-        {activeType === 'flights' && (
+        {(activeType === 'flights' || activeType === 'packages') && (
           <div className="flex space-x-3 w-full sm:w-auto justify-end">
             {/* Trip Type Select */}
             <div className="relative">
@@ -210,8 +352,8 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                 onChange={(e) => setTripType(e.target.value as any)}
                 className="appearance-none bg-white/10 border border-white/10 rounded-xl text-xs font-extrabold text-white pl-4 pr-10 py-2.5 hover:bg-white/15 cursor-pointer focus:outline-hidden backdrop-blur-md"
               >
-                <option value="round-trip" className="text-slate-900 font-bold">왕복</option>
-                <option value="one-way" className="text-slate-900 font-bold">편도</option>
+                <option value="round-trip" className="text-slate-900 font-bold">{t.roundTrip}</option>
+                <option value="one-way" className="text-slate-900 font-bold">{t.oneWay}</option>
               </select>
               <ChevronDown className="absolute right-3.5 top-3.5 h-3.5 w-3.5 text-white/70 pointer-events-none" />
             </div>
@@ -261,27 +403,26 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
       {/* Main Form Fields */}
       <form onSubmit={handleSearchSubmit} className="space-y-4 relative z-10" id="search-form">
         
-        {/* Row 1: Core Flight Search Blocks (Departure, Destination, Unified Date Card) */}
-        {activeType === 'flights' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-            
-            {/* Departure & Destination (Merged horizontal layout with floating swap) */}
-            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 relative">
-              
-              {/* Departure Input Card */}
+        {/* Row 1: 2x2 Core layout mimicking the premium design in user screenshot */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+          
+          {/* Row 1, Column 1 (Left top): 출발지 / 도착지 or 숙박할 도시 */}
+          {(activeType === 'flights' || activeType === 'packages') ? (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm grid grid-cols-2 divide-x divide-slate-150 overflow-visible h-[76px] relative">
+              {/* Departure */}
               <div 
                 ref={fromRef}
                 onClick={() => {
                   setIsFromFocused(true);
                   setShowFromSuggestions(true);
                 }}
-                className="flex items-center space-x-3.5 bg-white rounded-2xl p-4 border border-slate-200 cursor-pointer h-[76px] shadow-sm hover:border-blue-400 transition-all group relative"
+                className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group rounded-l-2xl"
               >
-                <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-100 transition-colors">
-                  <Plane className="h-5 w-5 text-blue-600 shrink-0" />
+                <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
+                  <Plane className="h-6 w-6" />
                 </div>
-                <div className="flex-1 text-left">
-                  <span className="block text-[10px] text-slate-400 font-black uppercase tracking-wider">도시/공항명</span>
+                <div className="flex-1 text-left min-w-0">
+                  <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">{t.departure}</span>
                   {isFromFocused ? (
                     <input
                       type="text"
@@ -292,13 +433,13 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                           setIsFromFocused(false);
                         }
                       }}
-                      className="w-full bg-transparent border-0 p-0 text-base font-black text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden"
-                      placeholder="출발지 도시 입력"
+                      className="w-full bg-transparent border-0 p-0 text-sm font-extrabold text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden"
+                      placeholder={t.departure}
                       autoFocus
                     />
                   ) : (
-                    <span className="text-base sm:text-lg font-black text-slate-800 block truncate leading-none mt-1">
-                      {getKoreanCityName(fromCity)} {getAirportCodeForCity(fromCity) ? `(${getAirportCodeForCity(fromCity)})` : ''}
+                    <span className="text-sm sm:text-base font-extrabold text-slate-800 block truncate leading-tight mt-1">
+                      {getKoreanCityName(fromCity, selectedLanguageCode)} {getAirportCodeForCity(fromCity) ? `(${getAirportCodeForCity(fromCity)})` : ''}
                     </span>
                   )}
                 </div>
@@ -310,7 +451,9 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 5 }}
-                      className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-1.5"
+                      className="absolute left-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-1.5"
+                      style={{ top: '100%' }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {filteredFromCities.map((city) => (
                         <button
@@ -327,7 +470,7 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                           <div className="flex items-center space-x-3">
                             <MapPin className="h-4 w-4 text-blue-600" />
                             <div>
-                              <span className="text-xs font-extrabold text-slate-800">{getKoreanCityName(city.name)} ({city.name})</span>
+                              <span className="text-xs font-extrabold text-slate-800">{getKoreanCityName(city.name, selectedLanguageCode)} ({city.name})</span>
                               <span className="text-[10px] text-slate-400 block font-semibold">{city.country}</span>
                             </div>
                           </div>
@@ -343,35 +486,20 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                 </AnimatePresence>
               </div>
 
-              {/* Float Swap Button */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden sm:flex">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSwap();
-                  }}
-                  className="h-9 w-9 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-lg text-slate-600 hover:text-blue-600 hover:scale-115 active:scale-90 transition-all cursor-pointer"
-                  title="출발지 목적지 전환"
-                >
-                  <ArrowLeftRight className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Destination Input Card */}
+              {/* Destination */}
               <div 
                 ref={toRef}
                 onClick={() => {
                   setIsToFocused(true);
                   setShowToSuggestions(true);
                 }}
-                className="flex items-center space-x-3.5 bg-white rounded-2xl p-4 border border-slate-200 cursor-pointer h-[76px] shadow-sm hover:border-blue-400 transition-all group relative"
+                className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group rounded-r-2xl"
               >
-                <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-100 transition-colors">
-                  <MapPin className="h-5 w-5 text-blue-600 shrink-0" />
+                <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
+                  <MapPin className="h-6 w-6" />
                 </div>
-                <div className="flex-1 text-left">
-                  <span className="block text-[10px] text-slate-400 font-black uppercase tracking-wider">도시/공항명</span>
+                <div className="flex-1 text-left min-w-0">
+                  <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">{t.arrival}</span>
                   {isToFocused ? (
                     <input
                       type="text"
@@ -382,13 +510,13 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                           setIsToFocused(false);
                         }
                       }}
-                      className="w-full bg-transparent border-0 p-0 text-base font-black text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden"
-                      placeholder="목적지 도시 입력"
+                      className="w-full bg-transparent border-0 p-0 text-sm font-extrabold text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden"
+                      placeholder={t.arrival}
                       autoFocus
                     />
                   ) : (
-                    <span className="text-base sm:text-lg font-black text-slate-800 block truncate leading-none mt-1">
-                      {getKoreanCityName(toCity)} {getAirportCodeForCity(toCity) ? `(${getAirportCodeForCity(toCity)})` : ''}
+                    <span className="text-sm sm:text-base font-extrabold text-slate-800 block truncate leading-tight mt-1">
+                      {getKoreanCityName(toCity, selectedLanguageCode)} {getAirportCodeForCity(toCity) ? `(${getAirportCodeForCity(toCity)})` : ''}
                     </span>
                   )}
                 </div>
@@ -400,7 +528,9 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 5 }}
-                      className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-1.5"
+                      className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-1.5"
+                      style={{ top: '100%' }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {filteredToCities.map((city) => (
                         <button
@@ -417,138 +547,7 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                           <div className="flex items-center space-x-3">
                             <MapPin className="h-4 w-4 text-blue-600" />
                             <div>
-                              <span className="text-xs font-extrabold text-slate-800">{getKoreanCityName(city.name)} ({city.name})</span>
-                              <span className="text-[10px] text-slate-400 block font-semibold">{city.country}</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end text-right">
-                            {city.airports.map(a => (
-                              <span key={a.code} className="text-[9px] font-mono font-bold bg-slate-100 px-2 py-0.5 rounded-md text-slate-500 mb-0.5">{a.code}</span>
-                            ))}
-                          </div>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-            </div>
-
-            {/* Unified Spacious Date Card */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm grid grid-cols-2 divide-x divide-slate-150 overflow-hidden h-[76px]">
-              
-              {/* Left Column: 가는 날 */}
-              <div className="relative p-4 flex items-center space-x-3 hover:bg-slate-50 transition-colors cursor-pointer group">
-                <input
-                  type="date"
-                  min={today}
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                />
-                <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-100 transition-colors shrink-0">
-                  <Calendar className="h-4.5 w-4.5 text-blue-600" />
-                </div>
-                <div className="text-left min-w-0">
-                  <span className="block text-[10px] text-slate-400 font-black uppercase tracking-wider">가는 날</span>
-                  <span className="block text-xs sm:text-sm font-black text-slate-800 truncate mt-0.5 leading-none">
-                    {formatKoreanDate(departureDate)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Right Column: 오는 날 */}
-              <div className={`relative p-4 flex items-center space-x-3 hover:bg-slate-50 transition-colors cursor-pointer group ${
-                tripType === 'one-way' ? 'opacity-35 pointer-events-none' : ''
-              }`}>
-                <input
-                  type="date"
-                  min={departureDate || today}
-                  disabled={tripType === 'one-way'}
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                />
-                <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-100 transition-colors shrink-0">
-                  <Calendar className="h-4.5 w-4.5 text-blue-600" />
-                </div>
-                <div className="text-left min-w-0">
-                  <span className="block text-[10px] text-slate-400 font-black uppercase tracking-wider">오는 날</span>
-                  <span className="block text-xs sm:text-sm font-black text-slate-800 truncate mt-0.5 leading-none">
-                    {tripType === 'one-way' ? '편도 여정' : formatKoreanDate(returnDate)}
-                  </span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        ) : (
-          /* Hotels Search Blocks Row */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-            
-            {/* Accommodation City Input Card */}
-            <div className="lg:col-span-7">
-              <div 
-                ref={toRef}
-                onClick={() => {
-                  setIsToFocused(true);
-                  setShowToSuggestions(true);
-                }}
-                className="flex items-center space-x-3.5 bg-white rounded-2xl p-4 border border-slate-200 cursor-pointer h-[76px] shadow-sm hover:border-blue-400 transition-all group relative w-full"
-              >
-                <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-100 transition-colors">
-                  <Hotel className="h-5 w-5 text-blue-600 shrink-0" />
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="block text-[10px] text-slate-400 font-black uppercase tracking-wider">숙박할 도시</span>
-                  {isToFocused ? (
-                    <input
-                      type="text"
-                      value={toCity}
-                      onChange={(e) => setToCity(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          setIsToFocused(false);
-                        }
-                      }}
-                      className="w-full bg-transparent border-0 p-0 text-base font-black text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden"
-                      placeholder="목적지 도시 입력"
-                      autoFocus
-                    />
-                  ) : (
-                    <span className="text-base sm:text-lg font-black text-slate-800 block truncate leading-none mt-1">
-                      {getKoreanCityName(toCity)} {getAirportCodeForCity(toCity) ? `(${getAirportCodeForCity(toCity)})` : ''}
-                    </span>
-                  )}
-                </div>
-
-                {/* Suggestions dropdown */}
-                <AnimatePresence>
-                  {showToSuggestions && filteredToCities.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 5 }}
-                      className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-1.5"
-                    >
-                      {filteredToCities.map((city) => (
-                        <button
-                          key={city.id}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setToCity(city.name);
-                            setShowToSuggestions(false);
-                            setIsToFocused(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-blue-50/70 rounded-xl transition-all cursor-pointer"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <MapPin className="h-4 w-4 text-blue-600" />
-                            <div>
-                              <span className="text-xs font-extrabold text-slate-800">{getKoreanCityName(city.name)} ({city.name})</span>
+                              <span className="text-xs font-extrabold text-slate-800">{getKoreanCityName(city.name, selectedLanguageCode)} ({city.name})</span>
                               <span className="text-[10px] text-slate-400 block font-semibold">{city.country}</span>
                             </div>
                           </div>
@@ -559,294 +558,426 @@ export default function SearchForm({ onSearch, initialQuery }: SearchFormProps) 
                 </AnimatePresence>
               </div>
             </div>
-
-            {/* Unified Hotel Date Card (체크인 & 체크아웃) */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm grid grid-cols-2 divide-x divide-slate-150 overflow-hidden h-[76px]">
-              
-              {/* Checkin Column */}
-              <div className="relative p-4 flex items-center space-x-3 hover:bg-slate-50 transition-colors cursor-pointer group">
-                <input
-                  type="date"
-                  min={today}
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                />
-                <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-100 transition-colors shrink-0">
-                  <Calendar className="h-4.5 w-4.5 text-blue-600" />
-                </div>
-                <div className="text-left min-w-0">
-                  <span className="block text-[10px] text-slate-400 font-black uppercase tracking-wider">체크인</span>
-                  <span className="block text-xs sm:text-sm font-black text-slate-800 truncate mt-0.5 leading-none">
-                    {formatKoreanDate(departureDate)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Checkout Column */}
-              <div className="relative p-4 flex items-center space-x-3 hover:bg-slate-50 transition-colors cursor-pointer group">
-                <input
-                  type="date"
-                  min={departureDate || today}
-                  value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
-                />
-                <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-100 transition-colors shrink-0">
-                  <Calendar className="h-4.5 w-4.5 text-blue-600" />
-                </div>
-                <div className="text-left min-w-0">
-                  <span className="block text-[10px] text-slate-400 font-black uppercase tracking-wider">체크아웃</span>
-                  <span className="block text-xs sm:text-sm font-black text-slate-800 truncate mt-0.5 leading-none">
-                    {formatKoreanDate(returnDate)}
-                  </span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        )}
-
-        {/* Row 2: Secondary Settings Block (Passengers/Rooms, Option Checkbox) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          
-          {/* Passenger/Guest Selection Dropdown Card */}
-          <div className="md:col-span-6 lg:col-span-5 relative" ref={passengerRef}>
-            {activeType === 'flights' ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                  className="w-full bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between text-left hover:border-blue-400 transition-all cursor-pointer h-[72px]"
-                  id="passenger-dropdown-trigger"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
-                      <Users className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <span className="block text-[10px] uppercase font-black text-slate-400 tracking-wider">인원</span>
-                      <span className="block text-sm sm:text-base font-black text-slate-800">승객 {totalPassengers}명</span>
-                    </div>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
-                </button>
-
-                <AnimatePresence>
-                  {showPassengerDropdown && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 5 }}
-                      className="absolute left-0 mt-2 w-68 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-4 space-y-4"
-                    >
-                      {/* Adults */}
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="text-xs font-black text-slate-800 block">성인</span>
-                          <span className="text-[10px] text-slate-400 font-medium">만 12세 이상</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            type="button"
-                            onClick={() => setPassengers(p => ({ ...p, adults: Math.max(1, p.adults - 1) }))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Minus className="h-3.5 w-3.5 font-bold" />
-                          </button>
-                          <span className="text-xs font-black text-slate-800 w-4 text-center">{passengers.adults}</span>
-                          <button
-                            type="button"
-                            onClick={() => setPassengers(p => ({ ...p, adults: p.adults + 1 }))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Plus className="h-3.5 w-3.5 font-bold" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Children */}
-                      <div className="flex justify-between items-center border-t border-slate-100 pt-3">
-                        <div>
-                          <span className="text-xs font-black text-slate-800 block">소아</span>
-                          <span className="text-[10px] text-slate-400 font-medium">만 2세 - 11세</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            type="button"
-                            onClick={() => setPassengers(p => ({ ...p, children: Math.max(0, p.children - 1) }))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <span className="text-xs font-black text-slate-800 w-4 text-center">{passengers.children}</span>
-                          <button
-                            type="button"
-                            onClick={() => setPassengers(p => ({ ...p, children: p.children + 1 }))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Infants */}
-                      <div className="flex justify-between items-center border-t border-slate-100 pt-3">
-                        <div>
-                          <span className="text-xs font-black text-slate-800 block">유아</span>
-                          <span className="text-[10px] text-slate-400 font-medium">만 2세 미만</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            type="button"
-                            onClick={() => setPassengers(p => ({ ...p, infants: Math.max(0, p.infants - 1) }))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <span className="text-xs font-black text-slate-800 w-4 text-center">{passengers.infants}</span>
-                          <button
-                            type="button"
-                            onClick={() => setPassengers(p => ({ ...p, infants: p.infants + 1 }))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </>
-            ) : (
-              /* Hotel Guest Selector trigger */
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                  className="w-full bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between text-left hover:border-blue-400 transition-all cursor-pointer h-[72px]"
-                  id="hotel-guest-dropdown-trigger"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
-                      <Users className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <span className="block text-[10px] uppercase font-black text-slate-400 tracking-wider">인원 / 객실</span>
-                      <span className="block text-sm sm:text-base font-black text-slate-800">{hotelGuests}명, {hotelRooms}객실</span>
-                    </div>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
-                </button>
-
-                <AnimatePresence>
-                  {showPassengerDropdown && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 5 }}
-                      className="absolute left-0 mt-2 w-68 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-4 space-y-4"
-                    >
-                      {/* Hotel Guests */}
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="text-xs font-black text-slate-800 block">투숙 인원</span>
-                          <span className="text-[10px] text-slate-400 font-medium">전체 투숙객 수</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            type="button"
-                            onClick={() => setHotelGuests(g => Math.max(1, g - 1))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <span className="text-xs font-black text-slate-800 w-4 text-center">{hotelGuests}</span>
-                          <button
-                            type="button"
-                            onClick={() => setHotelGuests(g => g + 1)}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Hotel Rooms */}
-                      <div className="flex justify-between items-center border-t border-slate-100 pt-3">
-                        <div>
-                          <span className="text-xs font-black text-slate-800 block">객실 수</span>
-                          <span className="text-[10px] text-slate-400 font-medium">필요한 객실 수</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            type="button"
-                            onClick={() => setHotelRooms(r => Math.max(1, r - 1))}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <span className="text-xs font-black text-slate-800 w-4 text-center">{hotelRooms}</span>
-                          <button
-                            type="button"
-                            onClick={() => setHotelRooms(r => r + 1)}
-                            className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </>
-            )}
-          </div>
-
-          {/* Optional Checkbox Block (다른 도시나 날짜의 숙소 검색하기) */}
-          <div className="md:col-span-6 lg:col-span-7">
-            <label 
-              onClick={() => setSearchHotelTogether(!searchHotelTogether)}
-              className="flex items-center space-x-3 bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl p-4 cursor-pointer h-[72px] transition-all"
+          ) : (
+            /* Hotel Search Left Card (Accommodation City) */
+            <div 
+              ref={toRef}
+              onClick={() => {
+                setIsToFocused(true);
+                setShowToSuggestions(true);
+              }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center p-4 hover:bg-slate-50/70 cursor-pointer h-[76px] transition-all relative w-full group"
             >
-              <div className={`h-5 w-5 rounded-md flex items-center justify-center border transition-all ${
-                searchHotelTogether 
-                  ? 'bg-blue-600 border-blue-500 text-white' 
-                  : 'bg-transparent border-white/40 text-transparent'
-              }`}>
-                <Check className="h-3.5 w-3.5 stroke-[3]" />
+              <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0 mr-3">
+                <Hotel className="h-6 w-6" />
               </div>
-              <div className="text-left">
-                <span className="block text-xs font-black text-white">다른 도시나 날짜의 숙소 검색하기</span>
-                <span className="block text-[9px] text-white/60 font-semibold mt-0.5">선택된 여정에 맞는 명품 추천 호텔 요금을 실시간 병합 정렬합니다.</span>
+              <div className="flex-1 text-left min-w-0">
+                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">{t.destinationCity}</span>
+                {isToFocused ? (
+                  <input
+                    type="text"
+                    value={toCity}
+                    onChange={(e) => setToCity(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setIsToFocused(false);
+                      }
+                    }}
+                    className="w-full bg-transparent border-0 p-0 text-sm font-extrabold text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden"
+                    placeholder={t.destinationCity}
+                    autoFocus
+                  />
+                ) : (
+                  <span className="text-sm sm:text-base font-extrabold text-slate-800 block truncate leading-tight mt-1">
+                    {getKoreanCityName(toCity, selectedLanguageCode)} {getAirportCodeForCity(toCity) ? `(${getAirportCodeForCity(toCity)})` : ''}
+                  </span>
+                )}
               </div>
-            </label>
+
+              {/* Suggestions dropdown */}
+              <AnimatePresence>
+                {showToSuggestions && filteredToCities.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute left-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 max-h-60 overflow-y-auto p-1.5"
+                    style={{ top: '100%' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {filteredToCities.map((city) => (
+                      <button
+                        key={city.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setToCity(city.name);
+                          setShowToSuggestions(false);
+                          setIsToFocused(false);
+                        }}
+                        className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-blue-50/70 rounded-xl transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <MapPin className="h-4 w-4 text-blue-600" />
+                          <div>
+                            <span className="text-xs font-extrabold text-slate-800">{getKoreanCityName(city.name, selectedLanguageCode)} ({city.name})</span>
+                            <span className="text-[10px] text-slate-400 block font-semibold">{city.country}</span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* Row 1, Column 2 (Right top): 가는 날 / 오는 날 or 체크인 / 체크아웃 */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm grid grid-cols-2 divide-x divide-slate-150 overflow-hidden h-[76px]">
+            {/* Left side: Departure/Check-in Date */}
+            <div className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group">
+              <input
+                type="date"
+                min={today}
+                value={departureDate}
+                onChange={(e) => setDepartureDate(e.target.value)}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+              />
+              <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
+                <Calendar className="h-6 w-6" />
+              </div>
+              <div className="text-left min-w-0">
+                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                  {(activeType === 'flights' || activeType === 'packages') ? t.departureDate : t.checkInDate}
+                </span>
+                <span className="block text-sm sm:text-base font-extrabold text-slate-800 truncate mt-1 leading-tight">
+                  {formatKoreanDate(departureDate, selectedLanguageCode)}
+                </span>
+              </div>
+            </div>
+
+            {/* Right side: Return/Check-out Date */}
+            <div className={`relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group ${
+              activeType === 'flights' && tripType === 'one-way' ? 'opacity-35 pointer-events-none' : ''
+            }`}>
+              <input
+                type="date"
+                min={departureDate || today}
+                disabled={activeType === 'flights' && tripType === 'one-way'}
+                value={returnDate}
+                onChange={(e) => setReturnDate(e.target.value)}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+              />
+              <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
+                <Calendar className="h-6 w-6" />
+              </div>
+              <div className="text-left min-w-0">
+                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                  {(activeType === 'flights' || activeType === 'packages') ? t.returnDate : t.checkOutDate}
+                </span>
+                <span className="block text-sm sm:text-base font-extrabold text-slate-800 truncate mt-1 leading-tight">
+                  {activeType === 'flights' && tripType === 'one-way' ? (selectedLanguageCode === 'ko' ? '편도 여정' : 'One Way') : formatKoreanDate(returnDate, selectedLanguageCode)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2, Column 1 (Left bottom): 인원 / 객실 */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm grid grid-cols-2 divide-x divide-slate-150 overflow-visible h-[76px] relative">
+            
+            {/* Passengers selection */}
+            <div 
+              ref={passengerRef}
+              onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
+              className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group rounded-l-2xl"
+            >
+              <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
+                <Users className="h-6 w-6" />
+              </div>
+              <div className="flex-1 text-left min-w-0">
+                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">{t.passengers}</span>
+                <span className="text-sm sm:text-base font-extrabold text-slate-800 block truncate mt-1">
+                  {(activeType === 'flights' || activeType === 'packages') 
+                    ? (language === 'EN' ? `${totalPassengers} Traveler${totalPassengers > 1 ? 's' : ''}` : `${totalPassengers}명`) 
+                    : (language === 'EN' ? `${hotelGuests} Guest${hotelGuests > 1 ? 's' : ''}` : `${hotelGuests}명`)
+                  }
+                </span>
+              </div>
+              <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
+
+              <AnimatePresence>
+                {showPassengerDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute left-0 mt-2 w-68 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-4 space-y-4"
+                    style={{ top: '100%' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {(activeType === 'flights' || activeType === 'packages') ? (
+                      <>
+                        {/* Adults */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className="text-xs font-black text-slate-800 block">{t.adults}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{t.adultsDesc}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              type="button"
+                              onClick={() => setPassengers(p => ({ ...p, adults: Math.max(1, p.adults - 1) }))}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Minus className="h-3.5 w-3.5 font-bold" />
+                            </button>
+                            <span className="text-xs font-black text-slate-800 w-4 text-center">{passengers.adults}</span>
+                            <button
+                              type="button"
+                              onClick={() => setPassengers(p => ({ ...p, adults: p.adults + 1 }))}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5 font-bold" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Children */}
+                        <div className="flex justify-between items-center border-t border-slate-100 pt-3">
+                          <div>
+                            <span className="text-xs font-black text-slate-800 block">{t.children}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{t.childrenDesc}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              type="button"
+                              onClick={() => setPassengers(p => ({ ...p, children: Math.max(0, p.children - 1) }))}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="text-xs font-black text-slate-800 w-4 text-center">{passengers.children}</span>
+                            <button
+                              type="button"
+                              onClick={() => setPassengers(p => ({ ...p, children: p.children + 1 }))}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Infants */}
+                        <div className="flex justify-between items-center border-t border-slate-100 pt-3">
+                          <div>
+                            <span className="text-xs font-black text-slate-800 block">{t.infants}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{t.infantsDesc}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              type="button"
+                              onClick={() => setPassengers(p => ({ ...p, infants: Math.max(0, p.infants - 1) }))}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="text-xs font-black text-slate-800 w-4 text-center">{passengers.infants}</span>
+                            <button
+                              type="button"
+                              onClick={() => setPassengers(p => ({ ...p, infants: p.infants + 1 }))}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Hotel Guests */}
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className="text-xs font-black text-slate-800 block">{t.guests}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{isEn ? 'Total guests' : '전체 투숙객 수'}</span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              type="button"
+                              onClick={() => setHotelGuests(g => Math.max(1, g - 1))}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="text-xs font-black text-slate-800 w-4 text-center">{hotelGuests}</span>
+                            <button
+                              type="button"
+                              onClick={() => setHotelGuests(g => g + 1)}
+                              className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Cabin Class or Rooms selection */}
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (activeType === 'flights') {
+                  setShowClassDropdown(!showClassDropdown);
+                } else {
+                  setShowRoomDropdown(!showRoomDropdown);
+                }
+              }}
+              className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group rounded-r-2xl"
+            >
+              <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
+                <DoorOpen className="h-6 w-6" />
+              </div>
+              <div className="flex-1 text-left min-w-0" ref={classRef}>
+                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                  {activeType === 'flights' ? (isEn ? 'Cabin Class' : '좌석 등급') : t.rooms}
+                </span>
+                <span className="text-sm sm:text-base font-extrabold text-slate-800 block truncate mt-1">
+                  {activeType === 'flights' 
+                    ? getCabinClassLabel(cabinClass)
+                    : activeType === 'packages'
+                      ? (isEn ? `${hotelRooms} Room${hotelRooms > 1 ? 's' : ''} / ${hotelGuests} Guest${hotelGuests > 1 ? 's' : ''}` : `${hotelRooms} 객실 / 투숙 ${hotelGuests}명`)
+                      : (isEn ? `${hotelRooms} Room${hotelRooms > 1 ? 's' : ''}` : `${hotelRooms} 객실`)
+                  }
+                </span>
+              </div>
+              <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
+
+              {/* Class options dropdown if activeType is flights */}
+              <AnimatePresence>
+                {activeType === 'flights' && showClassDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-1.5"
+                    style={{ top: '100%' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
+                      <button
+                        key={cls}
+                        type="button"
+                        onClick={() => {
+                          setCabinClass(cls);
+                          setShowClassDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs rounded-xl transition-colors cursor-pointer ${
+                          cabinClass === cls ? 'bg-blue-50 text-blue-700 font-black' : 'text-slate-700 hover:bg-slate-50 font-bold'
+                        }`}
+                      >
+                        {getCabinClassLabel(cls)}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Room & Guest modifier dropdown for hotels & packages */}
+              <AnimatePresence>
+                {(activeType === 'hotels' || activeType === 'packages') && showRoomDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 5 }}
+                    className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 p-4 space-y-4"
+                    style={{ top: '100%' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="text-xs font-black text-slate-800 block">{isEn ? 'Rooms' : '객실 수'}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">{isEn ? 'Number of rooms needed' : '필요한 객실 수'}</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => setHotelRooms(r => Math.max(1, r - 1))}
+                          className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="text-xs font-black text-slate-800 w-4 text-center">{hotelRooms}</span>
+                        <button
+                          type="button"
+                          onClick={() => setHotelRooms(r => r + 1)}
+                          className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center border-t border-slate-100 pt-3">
+                      <div>
+                        <span className="text-xs font-black text-slate-800 block">{t.guests}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">{isEn ? 'Total guests' : '전체 투숙객 수'}</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => setHotelGuests(g => Math.max(1, g - 1))}
+                          className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="text-xs font-black text-slate-800 w-4 text-center">{hotelGuests}</span>
+                        <button
+                          type="button"
+                          onClick={() => setHotelGuests(g => g + 1)}
+                          className="h-7 w-7 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+          </div>
+
+          {/* Row 2, Column 2 (Right bottom): Blue Search Action Button */}
+          <div>
+            <button
+              type="submit"
+              disabled={fromCity === toCity && (activeType === 'flights' || activeType === 'packages')}
+              className="h-[76px] w-full bg-[#1E60FF] hover:bg-[#004EE0] text-white font-black text-lg sm:text-xl rounded-2xl transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center justify-center space-x-2.5"
+              id="search-submit-btn"
+            >
+              <Search className="h-5.5 w-5.5 stroke-[2.5]" />
+              <span>
+                {activeType === 'flights' 
+                  ? t.searchFlights 
+                  : activeType === 'packages'
+                    ? (isEn ? 'Search Flight+Hotel' : '항공권+숙소 검색하기')
+                    : t.searchHotels
+                }
+              </span>
+            </button>
           </div>
 
         </div>
 
         {/* Dynamic warning alert block */}
-        {fromCity === toCity && activeType === 'flights' && (
+        {fromCity === toCity && (activeType === 'flights' || activeType === 'packages') && (
           <div className="bg-red-500/20 text-red-100 border border-red-500/30 text-xs font-extrabold rounded-xl p-3 text-center">
-            ⚠️ 출발지와 목적지는 서로 달라야 합니다. 새로운 도시를 입력해 주세요!
+            {isEn ? '⚠️ Departure and Destination cities must be different. Please select a different city!' : '⚠️ 출발지와 목적지는 서로 달라야 합니다. 새로운 도시를 입력해 주세요!'}
           </div>
         )}
-
-        {/* Bottom Submission Action: Centered Blue Pill Button */}
-        <div className="flex justify-center pt-2">
-          <button
-            type="submit"
-            disabled={fromCity === toCity && activeType === 'flights'}
-            className="w-full sm:w-auto min-w-[280px] bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest text-sm py-4 px-12 rounded-full transition-all shadow-xl hover:shadow-blue-500/20 hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center justify-center space-x-2"
-            id="search-submit-btn"
-          >
-            <Search className="h-4 w-4" />
-            <span>
-              {activeType === 'flights' ? '항공권+숙소 검색하기' : '호텔 최저가 검색하기'}
-            </span>
-          </button>
-        </div>
 
       </form>
     </div>

@@ -1,7 +1,11 @@
 import React from 'react';
 import { Plane, HelpCircle, Shield, Phone, Mail, Award, CheckCircle } from 'lucide-react';
 
-export default function Footer() {
+interface FooterProps {
+  onShowRefundPolicy?: () => void;
+}
+
+export default function Footer({ onShowRefundPolicy }: FooterProps) {
   return (
     <footer className="bg-gray-950 text-gray-400 py-12 border-t border-gray-900" id="main-footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -9,11 +13,11 @@ export default function Footer() {
           
           {/* Logo & Slogan */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2 text-white text-xl font-bold">
-              <span className="bg-blue-600 text-white p-1 rounded flex items-center justify-center">
+            <div className="flex items-center space-x-2.5 text-white text-xl">
+              <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 text-white p-1 rounded flex items-center justify-center shadow-sm">
                 <Plane className="h-4 w-4 rotate-45 transform" />
               </span>
-              <span className="text-blue-500">YASKYTRIP</span>
+              <span className="logo-custom text-lg tracking-[0.08em] bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 uppercase font-bold select-none">YASKYTRIP</span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
               YASKYTRIP은 전 세계 수백 개의 여행 사이트를 단번에 검색하여 가장 저렴한 비행기 표와 완벽한 호텔을 찾아드립니다. 완벽한 계획을 보다 합리적으로 즐겨보세요.
@@ -40,9 +44,15 @@ export default function Footer() {
             <h4 className="text-white text-xs font-semibold uppercase tracking-wider mb-4 font-sans">고객 지원</h4>
             <ul className="space-y-2 text-xs">
               <li><a href="#" className="hover:text-white transition-colors flex items-center space-x-1"><HelpCircle className="h-3 w-3" /> <span>자주 묻는 질문 (FAQ)</span></a></li>
-              <li><span className="flex items-center space-x-1"><Phone className="h-3 w-3 text-blue-600" /> <span>고객센터: 1544-0000</span></span></li>
-              <li><span className="flex items-center space-x-1"><Mail className="h-3 w-3 text-blue-600" /> <span>support@yaskytrip.com</span></span></li>
-              <li><a href="#" className="hover:text-white transition-colors">취소 및 환불 안내</a></li>
+              <li>
+                <button 
+                  onClick={onShowRefundPolicy} 
+                  className="hover:text-white transition-colors cursor-pointer text-left focus:outline-hidden"
+                  id="footer-refund-policy-btn"
+                >
+                  취소 및 환불 안내
+                </button>
+              </li>
             </ul>
           </div>
 

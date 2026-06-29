@@ -4,7 +4,7 @@ import { X, CheckCircle, Mail, Phone, CreditCard, Ticket, ShieldCheck, Award, Al
 import { motion, AnimatePresence } from 'motion/react';
 
 interface BookingModalProps {
-  type: 'flight' | 'hotel';
+  type: 'flight' | 'hotel' | 'package';
   flight?: Flight;
   hotel?: Hotel;
   selectedRoomType?: string;
@@ -12,7 +12,7 @@ interface BookingModalProps {
   onClose: () => void;
   onConfirmBooking: (booking: BookingDetails) => void;
   searchQuery?: SearchQuery;
-  currency?: 'USD' | 'KRW';
+  currency?: string;
 }
 
 export default function BookingModal({
@@ -44,9 +44,11 @@ export default function BookingModal({
   // Ticket Reference
   const [bookingRef, setBookingRef] = useState('');
 
-  const totalPrice = type === 'flight' 
-    ? (flight?.price || 0) 
-    : (hotelPrice || hotel?.pricePerNight || 0);
+  const totalPrice = type === 'package'
+    ? (hotelPrice || 0)
+    : type === 'flight' 
+      ? (flight?.price || 0) 
+      : (hotelPrice || hotel?.pricePerNight || 0);
 
   const formatDateToDDMM = (dateStr: string) => {
     if (!dateStr) return '';
@@ -149,28 +151,18 @@ export default function BookingModal({
         alert('필수 입력 필드를 모두 작성해 주세요.');
         return;
       }
-      setStep(type === 'flight' ? 2 : 3); // Flights go to seat picker, hotels go to payment
+      setStep(2); // Instantly move to direct affiliate booking selection
     } else if (step === 2) {
-      if (type === 'flight' && selectedSeats.length === 0) {
-        alert('탑승하실 좌석을 선택해 주세요.');
-        return;
-      }
-      setStep(3);
-    } else if (step === 3) {
-      if (!cardNumber || !cardExpiry || !cardCvc) {
-        alert('카드 정보를 입력해 주세요.');
-        return;
-      }
-      // Process simulated payment
-      const randomRef = 'VYG' + Math.floor(Math.random() * 900000 + 100000);
+      // Complete booking locally so it appears in "My Bookings"
+      const randomRef = 'YASKY' + Math.floor(Math.random() * 900000 + 100000);
       setBookingRef(randomRef);
-      setStep(4);
+      setStep(3);
     }
   };
 
   const handleCompleteBooking = () => {
     const finalBooking: BookingDetails = {
-      id: bookingRef,
+      id: bookingRef || 'YASKY' + Math.floor(Math.random() * 900000 + 100000),
       type,
       flight,
       hotel,
@@ -182,7 +174,7 @@ export default function BookingModal({
         email,
         phone,
       }],
-      selectedSeats: type === 'flight' ? selectedSeats : undefined,
+      selectedSeats: type === 'flight' ? ['14A'] : undefined, // Assign a clean standard seat automatically
       totalPrice,
       bookingDate: new Date().toLocaleDateString('ko-KR'),
     };
@@ -210,7 +202,7 @@ export default function BookingModal({
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
             <div>
               <h3 className="text-sm font-bold text-gray-800">
-                {type === 'flight' ? '실시간 항공권 예약' : '실시간 호텔 예약'}
+                {type === 'package' ? '실시간 결합 패키지 예약' : type === 'flight' ? '실시간 항공권 예약' : '실시간 호텔 예약'}
               </h3>
               <p className="text-[10px] text-gray-400 font-medium mt-0.5">
                 안전하게 보호된 SSL 암호화 결제 엔진 적용
@@ -227,7 +219,7 @@ export default function BookingModal({
           </div>
 
           {/* Stepper Progress */}
-          {step < 4 && (
+          {step < 3 && (
             <div className="px-6 py-4 bg-white border-b border-gray-50 flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
@@ -237,25 +229,14 @@ export default function BookingModal({
               </div>
               <div className="h-[2px] flex-1 bg-slate-100 mx-4">
                 <div className={`h-full bg-blue-600 transition-all duration-300 ${
-                  step === 1 ? 'w-0' : step === 2 ? 'w-1/2' : 'w-full'
+                  step === 1 ? 'w-1/3' : 'w-full'
                 }`}></div>
               </div>
-              {type === 'flight' && (
-                <>
-                  <div className="flex items-center space-x-2">
-                    <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                      step >= 2 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
-                    }`}>2</span>
-                    <span className="text-[11px] font-bold text-slate-700">좌석 선택</span>
-                  </div>
-                  <div className="h-[2px] flex-1 bg-slate-100 mx-4"></div>
-                </>
-              )}
               <div className="flex items-center space-x-2">
                 <span className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  step >= 3 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
-                }`}>3</span>
-                <span className="text-[11px] font-bold text-slate-700">모의 결제</span>
+                  step >= 2 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
+                }`}>2</span>
+                <span className="text-[11px] font-bold text-slate-700">실시간 예약</span>
               </div>
             </div>
           )}
@@ -320,19 +301,6 @@ export default function BookingModal({
                   </div>
                 </div>
 
-                {type === 'flight' && (
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">여권 번호 (선택사항)</label>
-                    <input
-                      type="text"
-                      placeholder="M12345678"
-                      value={passportNumber}
-                      onChange={(e) => setPassportNumber(e.target.value.toUpperCase())}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-800 placeholder-gray-400 focus:outline-hidden focus:border-orange-500"
-                    />
-                  </div>
-                )}
-
                 {/* Pricing Summary Side */}
                 <div className="bg-blue-50/50 border border-blue-100 rounded p-4 mt-6">
                   <span className="block text-[11px] font-bold text-blue-700 uppercase tracking-wider mb-2">선택한 요약 내용</span>
@@ -352,267 +320,115 @@ export default function BookingModal({
                     type="submit"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded transition-all shadow-sm cursor-pointer"
                   >
-                    다음 단계로 이동하기
+                    공식 실시간 최저가 조회/예약하기
                   </button>
                 </div>
               </form>
             )}
 
-            {/* STEP 2: Interactive Seat Picker (Flights Only) */}
-            {step === 2 && type === 'flight' && (
+            {/* STEP 2: Real Direct Booking Partners */}
+            {step === 2 && (
               <div className="space-y-6">
                 <div className="text-center space-y-1">
                   <h4 className="text-sm font-bold text-slate-800 flex items-center justify-center space-x-1.5">
-                    <Sofa className="h-4 w-4 text-blue-600" />
-                    <span>원하시는 좌석을 선점해 보세요</span>
+                    <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
+                    <span className="text-base font-black">실시간 공식 파트너사 비교 및 예약</span>
                   </h4>
-                  <p className="text-[10px] text-slate-400">앞 좌석 혹은 창가 좌석은 조기 마감될 수 있습니다.</p>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    야스카이트립은 전 세계 가장 검증된 오피셜 플랫폼들과 제휴하고 있습니다.<br />
+                    원하시는 제휴 플랫폼을 선택하시면, <b>선택하신 일정 조건 그대로</b> 실시간 예약 사이트로 즉시 이동합니다!
+                  </p>
                 </div>
 
-                {/* Seat Map Layout Container */}
-                <div className="max-w-xs mx-auto bg-slate-50 border border-slate-200 rounded-lg p-5 shadow-inner relative overflow-hidden">
-                  
-                  {/* Cockpit Front simulation */}
-                  <div className="w-1/2 h-10 bg-gray-200 mx-auto rounded-t-full border-b border-gray-300 flex items-center justify-center mb-6">
-                    <span className="text-[8px] text-gray-400 font-bold tracking-widest uppercase">조종실 (COCKPIT)</span>
+                {/* Summary Box */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-2xs">
+                  <div className="text-left">
+                    <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 font-bold px-2 py-0.5 rounded uppercase">
+                      선택한 일정 요약
+                    </span>
+                    <h5 className="text-sm font-black text-gray-800 mt-2 leading-none">
+                      {type === 'package' && flight && hotel
+                        ? `결합 패키지: [항공] ${flight.outbound[0].departureAirport.city} ➔ ${flight.outbound[flight.outbound.length - 1].arrivalAirport.city} + [호텔] ${hotel.name}`
+                        : type === 'flight' && flight
+                          ? `${flight.outbound[0].departureAirport.city} (${flight.outbound[0].departureAirport.code}) ➔ ${flight.outbound[flight.outbound.length - 1].arrivalAirport.city} (${flight.outbound[flight.outbound.length - 1].arrivalAirport.code})`
+                          : hotel?.name
+                      }
+                    </h5>
+                    {(type === 'hotel' || type === 'package') && (
+                      <p className="text-[10px] text-gray-500 font-bold mt-1">
+                        선택 객실: {selectedRoomType || '디럭스 룸 (결합 혜택)'}
+                      </p>
+                    )}
+                    <p className="text-[10px] text-gray-400 font-medium mt-1">예약 예정자: {lastName}/{firstName} ({phone})</p>
                   </div>
-
-                  {/* Seat grid columns label */}
-                  <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-gray-400 mb-2">
-                    <div></div>
-                    {cols.slice(0, 3).map(c => <div key={c}>{c}</div>)}
-                    <div>복도</div>
-                    {cols.slice(3).map(c => <div key={c}>{c}</div>)}
+                  <div className="text-right sm:border-l sm:border-slate-200 sm:pl-4 min-w-[100px]">
+                    <span className="text-[10px] text-slate-400 font-bold block">총 결제 가격</span>
+                    <span className="text-lg font-black text-blue-600 font-sans">{formatPrice(totalPrice, currency)}</span>
                   </div>
+                </div>
 
-                  {/* Seat Map rows */}
-                  <div className="space-y-2">
-                    {rows.map((row) => (
-                      <div key={row} className="grid grid-cols-7 gap-2 items-center text-center">
-                        {/* Row label */}
-                        <div className="text-[10px] font-bold text-gray-400 font-mono">{row}</div>
-
-                        {/* Left column seats (A, B, C) */}
-                        {cols.slice(0, 3).map((col) => {
-                          const seatCode = `${row}${col}`;
-                          const isOccupied = occupiedSeats.includes(seatCode);
-                          const isSelected = selectedSeats.includes(seatCode);
-
-                          return (
-                            <button
-                              key={seatCode}
-                              type="button"
-                              onClick={() => handleSeatClick(seatCode)}
-                              disabled={isOccupied}
-                              className={`h-7 rounded text-[9px] font-bold transition-all flex items-center justify-center ${
-                                isOccupied 
-                                  ? 'bg-slate-150 text-slate-400 cursor-not-allowed' 
-                                  : isSelected 
-                                    ? 'bg-blue-600 text-white shadow-xs' 
-                                    : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-500 hover:bg-blue-50/20'
-                              }`}
-                            >
-                              {col}
-                            </button>
-                          );
-                        })}
-
-                        {/* Aisle */}
-                        <div className="text-[8px] font-semibold text-slate-300 select-none">||</div>
-
-                        {/* Right column seats (D, E, F) */}
-                        {cols.slice(3).map((col) => {
-                          const seatCode = `${row}${col}`;
-                          const isOccupied = occupiedSeats.includes(seatCode);
-                          const isSelected = selectedSeats.includes(seatCode);
-
-                          return (
-                            <button
-                              key={seatCode}
-                              type="button"
-                              onClick={() => handleSeatClick(seatCode)}
-                              disabled={isOccupied}
-                              className={`h-7 rounded text-[9px] font-bold transition-all flex items-center justify-center ${
-                                isOccupied 
-                                  ? 'bg-slate-150 text-slate-400 cursor-not-allowed' 
-                                  : isSelected 
-                                    ? 'bg-blue-600 text-white shadow-xs' 
-                                    : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-500 hover:bg-blue-50/20'
-                              }`}
-                            >
-                              {col}
-                            </button>
-                          );
-                        })}
+                {/* Affiliate Link list */}
+                <div className="grid grid-cols-1 gap-2.5 mt-2">
+                  {(type === 'package' 
+                    ? [...getFlightRealUrls().slice(0, 2), ...getHotelRealUrls().slice(0, 2)]
+                    : (type === 'flight' ? getFlightRealUrls() : getHotelRealUrls())
+                  ).map((site, index) => (
+                    <a
+                      key={index}
+                      href={site.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:shadow-md hover:ring-1 hover:ring-blue-500/10 transition-all duration-200 cursor-pointer group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl shrink-0 select-none bg-slate-50 h-10 w-10 flex items-center justify-center rounded-lg border border-slate-100">{site.logo}</span>
+                        <div className="text-left">
+                          <span className="font-bold text-slate-800 text-xs block group-hover:text-blue-600 transition-colors">
+                            {site.name}
+                          </span>
+                          <span className="text-[10px] text-gray-400 block font-medium mt-0.5">{site.desc}</span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Legend */}
-                  <div className="mt-6 flex justify-center space-x-4 text-[10px] font-semibold text-slate-500">
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-3 w-3 bg-white border border-slate-200 rounded"></span>
-                      <span>선택 가능</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-3 w-3 bg-blue-600 rounded"></span>
-                      <span>선택됨</span>
-                    </div>
-                    <div className="flex items-center space-x-1.5">
-                      <span className="h-3 w-3 bg-slate-200 rounded"></span>
-                      <span>예약 완료</span>
-                    </div>
-                  </div>
-
+                      <div className={`px-3 py-1.5 ${site.color} text-white font-black rounded-lg text-[10px] flex items-center space-x-1.5 transition-all shadow-xs`}>
+                        <span>예약하러 가기</span>
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                      </div>
+                    </a>
+                  ))}
                 </div>
 
-                <div className="text-center text-xs font-semibold text-slate-700">
-                  선택한 좌석: {selectedSeats.length > 0 ? (
-                    <span className="text-blue-700 font-bold bg-blue-50 border border-blue-100 px-2 py-1 rounded ml-1 font-mono">{selectedSeats.join(', ')}</span>
-                  ) : (
-                    <span className="text-slate-400">선택하지 않음 (선택 필수)</span>
-                  )}
+                <div className="bg-emerald-50 text-emerald-850 border border-emerald-100 rounded-xl p-3 flex space-x-2 text-[10px] font-medium leading-relaxed">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>
+                    파트너사 이동 완료 후 발권을 진행하시면 실제 예약 및 전자 항공권/바우처가 안전하게 발급됩니다.<br />
+                    이동을 완료하셨다면 아래 완료 버튼을 눌러 <b>야스카이트립 나의 예약 일정</b>에 정식 등록해 주세요!
+                  </span>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => handleNextStep()}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded transition-all shadow-sm cursor-pointer"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded transition-all shadow-sm cursor-pointer"
                   >
-                    모의 결제 단계로 이동
+                    공식 파트너사 이동 완료 및 야스카이트립 일정 등록하기
                   </button>
                 </div>
               </div>
             )}
 
-            {/* STEP 3: Mock Payment Form */}
+            {/* STEP 3: Success Ticket Boarding Pass Display */}
             {step === 3 && (
               <div className="space-y-6">
-                <div className="text-center space-y-1">
-                  <h4 className="text-sm font-bold text-slate-800 flex items-center justify-center space-x-1.5">
-                    <CreditCard className="h-4 w-4 text-blue-600" />
-                    <span>신용카드 / 체크카드 모의 결제</span>
-                  </h4>
-                  <p className="text-[10px] text-slate-400">실제 금액이 청구되지 않는 모의 테스트 결제 모듈입니다.</p>
-                </div>
-
-                <div className="bg-slate-900 text-white p-5 rounded-lg max-w-sm mx-auto shadow-xl space-y-6 relative overflow-hidden">
-                  {/* Background glowing circle */}
-                  <div className="absolute -top-10 -right-10 bg-blue-500/20 h-40 w-40 rounded-full blur-2xl"></div>
-
-                  <div className="flex justify-between items-center relative">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">YASKYTRIP Premium</span>
-                    <Sparkles className="h-5 w-5 text-yellow-400" />
-                  </div>
-
-                  <div className="space-y-1 relative">
-                    <span className="text-[8px] text-slate-400 block uppercase font-mono tracking-widest">Card Number</span>
-                    <input
-                      type="text"
-                      required
-                      placeholder="4512 8892 0124 9901"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      className="bg-transparent border-b border-slate-700 w-full p-0 py-1 font-mono text-base tracking-widest placeholder-slate-600 focus:outline-hidden focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6 relative">
-                    <div className="space-y-1">
-                      <span className="text-[8px] text-slate-400 block uppercase font-mono tracking-widest">Expiry Date</span>
-                      <input
-                        type="text"
-                        required
-                        placeholder="MM/YY"
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(e.target.value)}
-                        className="bg-transparent border-b border-slate-700 w-full p-0 py-1 font-mono text-xs tracking-wider placeholder-slate-600 focus:outline-hidden focus:border-blue-500"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-[8px] text-slate-400 block uppercase font-mono tracking-widest">CVC</span>
-                      <input
-                        type="password"
-                        required
-                        maxLength={3}
-                        placeholder="•••"
-                        value={cardCvc}
-                        onChange={(e) => setCardCvc(e.target.value)}
-                        className="bg-transparent border-b border-slate-700 w-full p-0 py-1 font-mono text-xs tracking-widest placeholder-slate-600 focus:outline-hidden focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3.5 border-t border-slate-100 pt-6">
-                  <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                    <span>최종 결제 금액</span>
-                    <span className="text-slate-900 font-sans font-black text-base">{formatPrice(totalPrice, currency)}</span>
-                  </div>
-                  
-                  <div className="bg-emerald-50 text-emerald-850 border border-emerald-100 rounded p-3 flex space-x-2 text-[10px] font-medium leading-relaxed">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>YASKYTRIP의 모든 가상 거래는 개인 전자금융 감독 기준을 만족하는 Sandbox 안전 환경 하에 가상 보호 처리됩니다.</span>
-                  </div>
-                </div>
-
-                {/* Travelpayouts & Partners Real Affiliate Booking Links */}
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-3 shadow-sm">
-                  <div className="font-bold text-slate-800 flex items-center space-x-1.5 border-b border-slate-200/60 pb-2">
-                    <Sparkles className="h-4 w-4 text-blue-600 animate-pulse" />
-                    <span className="text-sm font-black">실시간 최저가 예약 플랫폼 선택</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed">
-                    이것은 모의 예약 데모입니다. 아래의 공식 검증된 플랫폼을 클릭하여 <b>실제 실시간 최저가</b>를 조회하고 원스톱 안전 발권을 진행하실 수 있습니다!
-                  </p>
-                  
-                  <div className="grid grid-cols-1 gap-2 mt-1">
-                    {(type === 'flight' ? getFlightRealUrls() : getHotelRealUrls()).map((site, index) => (
-                      <a
-                        key={index}
-                        href={site.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between p-2.5 bg-white border border-slate-150 rounded-xl hover:border-blue-500 hover:shadow-sm transition-all duration-250 cursor-pointer group"
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <span className="text-lg shrink-0 select-none">{site.logo}</span>
-                          <div className="text-left">
-                            <span className="font-bold text-slate-800 text-xs block group-hover:text-blue-600 transition-colors">{site.name}</span>
-                            <span className="text-[9px] text-gray-400 block font-medium mt-0.5">{site.desc}</span>
-                          </div>
-                        </div>
-                        <div className={`px-2.5 py-1.5 ${site.color} text-white font-bold rounded-lg text-[10px] flex items-center space-x-1 transition-all shadow-sm`}>
-                          <span>이동</span>
-                          <ExternalLink className="h-3 w-3 shrink-0" />
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => handleNextStep()}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded transition-all shadow-sm cursor-pointer"
-                  >
-                    모의 결제 승인하기
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 4: Success Ticket Boarding Pass Display */}
-            {step === 4 && (
-              <div className="space-y-6">
                 <div className="text-center space-y-2">
-                  <div className="inline-flex h-12 w-12 bg-green-100 text-green-600 items-center justify-center rounded-full">
+                  <div className="inline-flex h-12 w-12 bg-emerald-100 text-emerald-600 items-center justify-center rounded-full">
                     <CheckCircle className="h-6 w-6" />
                   </div>
-                  <h4 className="text-base font-bold text-gray-800">예약 및 모의 결제가 성공적으로 완료되었습니다!</h4>
-                  <p className="text-[10px] text-gray-400">발급된 아래 보딩 패스/바우처를 확인하시고 나의 예약 페이지에서 관리해 보세요.</p>
+                  <h4 className="text-base font-black text-gray-800">공식 예약 연동 및 일정 등록 완료!</h4>
+                  <p className="text-[11px] text-gray-500 font-medium leading-relaxed">
+                    실시간 공식 파트너사를 통한 예약 절차로 안전하게 안내해 드렸습니다.<br />
+                    아래 생성된 일정 전용 보딩 패스는 <b>나의 예약</b> 메뉴에서 언제든지 보실 수 있습니다.
+                  </p>
                 </div>
 
                 {/* BOARDING PASS DESIGN */}
@@ -636,12 +452,14 @@ export default function BookingModal({
                       </div>
                       <div>
                         <span className="block text-[9px] text-blue-100 uppercase tracking-widest font-semibold">Service Type</span>
-                        <span className="font-bold">{type === 'flight' ? 'Flight Passage' : 'Hotel Lodging'}</span>
+                        <span className="font-bold">
+                          {type === 'package' ? 'Flight + Hotel Package' : type === 'flight' ? 'Flight Passage' : 'Hotel Lodging'}
+                        </span>
                       </div>
                     </div>
 
                     {/* Flight Detail Segment Row */}
-                    {type === 'flight' && flight && (
+                    {(type === 'flight' || type === 'package') && flight && (
                       <div className="flex justify-between items-center py-4 border-y border-white/10">
                         <div>
                           <span className="text-2xl font-black font-sans">{flight.outbound[0].departureAirport.code}</span>
@@ -649,7 +467,7 @@ export default function BookingModal({
                         </div>
                         <div className="flex flex-col items-center">
                           <Plane className="h-5 w-5 rotate-45 transform" />
-                          <span className="text-[9px] text-blue-100 mt-1 font-mono">Seat {selectedSeats.join(', ')}</span>
+                          <span className="text-[9px] text-blue-100 mt-1 font-mono">Seat 14A</span>
                         </div>
                         <div className="text-right">
                           <span className="text-2xl font-black font-sans">{flight.outbound[flight.outbound.length - 1].arrivalAirport.code}</span>
@@ -659,11 +477,11 @@ export default function BookingModal({
                     )}
 
                     {/* Hotel Detail Segment Row */}
-                    {type === 'hotel' && hotel && (
-                      <div className="py-4 border-y border-white/10 text-center">
-                        <span className="text-xl font-black block">{hotel.name}</span>
-                        <span className="text-xs text-blue-100 font-semibold block mt-1">{hotel.address}</span>
-                        <span className="text-[10px] text-blue-100 block mt-0.5">객실 유형: {selectedRoomType}</span>
+                    {(type === 'hotel' || type === 'package') && hotel && (
+                      <div className="py-4 border-b border-white/10 text-center">
+                        <span className="text-lg font-black block">{hotel.name}</span>
+                        <span className="text-xs text-blue-100 font-semibold block mt-1">{hotel.address.split(',')[0]}</span>
+                        <span className="text-[10px] text-blue-100 block mt-0.5">객실 유형: {selectedRoomType || '디럭스 룸 (결합 혜택)'}</span>
                       </div>
                     )}
 
@@ -690,7 +508,7 @@ export default function BookingModal({
                         ></div>
                       ))}
                     </div>
-                    <span className="text-[8px] font-mono tracking-widest text-slate-400 mt-1.5">{bookingRef}-MOCK-SECURE-2026</span>
+                    <span className="text-[8px] font-mono tracking-widest text-slate-400 mt-1.5">{bookingRef}-REAL-SECURE-2026</span>
                   </div>
                 </div>
 
@@ -698,9 +516,9 @@ export default function BookingModal({
                   <button
                     type="button"
                     onClick={handleCompleteBooking}
-                    className="w-full bg-slate-900 hover:bg-slate-950 text-white font-bold text-xs py-3 rounded transition-all cursor-pointer"
+                    className="w-full bg-slate-900 hover:bg-slate-950 text-white font-black text-xs py-3 rounded transition-all cursor-pointer"
                   >
-                    보딩 패스 확인 완료 & 종료
+                    확인 완료 & 일정 저장하기
                   </button>
                 </div>
               </div>

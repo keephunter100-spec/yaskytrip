@@ -1,15 +1,22 @@
 import React from 'react';
-import { Plane, Hotel, Briefcase, User, Globe, Compass, Star } from 'lucide-react';
+import { Plane, Hotel, Briefcase, Globe } from 'lucide-react';
+import { LANGUAGES } from './LanguageSelectionModal';
+import { getTranslation } from '../utils/translations';
+import { CURRENCY_DATA } from '../types';
 
 interface HeaderProps {
-  activeTab: 'flights' | 'hotels' | 'bookings';
-  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings') => void;
+  activeTab: 'flights' | 'hotels' | 'bookings' | 'packages';
+  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings' | 'packages') => void;
   bookingCount: number;
-  currency: 'USD' | 'KRW';
-  setCurrency: (currency: 'USD' | 'KRW') => void;
+  currency: string;
+  setCurrency: (currency: string) => void;
   currentUserEmail: string | null;
   onOpenAuth: (mode: 'login' | 'signup') => void;
   onLogout: () => void;
+  language: 'KO' | 'EN';
+  setLanguage: (language: string) => void;
+  selectedLanguageCode: string;
+  onOpenLanguageModal: () => void;
 }
 
 export default function Header({ 
@@ -20,8 +27,24 @@ export default function Header({
   setCurrency,
   currentUserEmail,
   onOpenAuth,
-  onLogout
+  onLogout,
+  language,
+  setLanguage,
+  selectedLanguageCode,
+  onOpenLanguageModal
 }: HeaderProps) {
+  // Translations
+  const t = {
+    flights: getTranslation('flights', selectedLanguageCode),
+    hotels: getTranslation('hotels', selectedLanguageCode),
+    bookings: getTranslation('bookings', selectedLanguageCode),
+    logout: getTranslation('logout', selectedLanguageCode),
+    login: getTranslation('login', selectedLanguageCode),
+    signup: getTranslation('signup', selectedLanguageCode),
+  };
+
+  const currencySymbol = CURRENCY_DATA[currency]?.symbol || '$';
+
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shrink-0" id="main-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,13 +53,13 @@ export default function Header({
           <div className="flex items-center space-x-8">
             <button 
               onClick={() => setActiveTab('flights')} 
-              className="flex items-center space-x-2 text-2xl font-bold text-blue-600 tracking-tight"
+              className="flex items-center space-x-2.5 text-2xl transition-all"
               id="logo-btn"
             >
-              <span className="bg-blue-600 text-white p-1.5 rounded-md flex items-center justify-center">
-                <Plane className="h-4 w-4 rotate-45 transform" />
+              <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 text-white p-1.5 rounded-lg flex items-center justify-center shadow-sm">
+                <Plane className="h-4.5 w-4.5 rotate-45 transform" />
               </span>
-              <span>YASKYTRIP</span>
+              <span className="logo-custom text-[21px] tracking-[0.08em] select-none bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 font-bold">YASKYTRIP</span>
             </button>
 
             {/* Navigation Tabs */}
@@ -51,7 +74,7 @@ export default function Header({
                 id="nav-flights"
               >
                 <Plane className="h-4 w-4" />
-                <span>항공권</span>
+                <span>{t.flights}</span>
               </button>
 
               <button
@@ -64,7 +87,7 @@ export default function Header({
                 id="nav-hotels"
               >
                 <Hotel className="h-4 w-4" />
-                <span>호텔</span>
+                <span>{t.hotels}</span>
               </button>
 
               <button
@@ -77,7 +100,7 @@ export default function Header({
                 id="nav-bookings"
               >
                 <Briefcase className="h-4 w-4" />
-                <span>나의 예약</span>
+                <span>{t.bookings}</span>
                 {bookingCount > 0 && (
                   <span className="absolute top-2 -right-3.5 bg-blue-600 text-white text-[9px] font-bold h-4 w-4 flex items-center justify-center rounded-full animate-pulse">
                     {bookingCount}
@@ -89,14 +112,33 @@ export default function Header({
 
           {/* Right Side Options */}
           <div className="flex items-center space-x-3">
+            {/* National Flags Language Switcher (Opens Language Selection Modal) */}
+            <div className="flex items-center" id="language-selector">
+              <button
+                onClick={onOpenLanguageModal}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-sm text-xs font-bold transition-all cursor-pointer"
+                title="언어 선택 / Select Language"
+                id="language-modal-trigger-btn"
+              >
+                <span className="text-base select-none leading-none">
+                  {LANGUAGES.find(l => l.code === selectedLanguageCode)?.flag || '🇰🇷'}
+                </span>
+                <span className="text-slate-700 font-bold text-[11px] tracking-tight">
+                  {LANGUAGES.find(l => l.code === selectedLanguageCode)?.name || '한국어'}
+                </span>
+              </button>
+            </div>
+
+            <div className="h-4 w-[1px] bg-slate-200"></div>
+
             <button 
               onClick={() => setCurrency(currency === 'USD' ? 'KRW' : 'USD')}
-              className="p-2 text-slate-700 hover:text-blue-600 rounded-md hover:bg-slate-50 transition-all hidden sm:flex items-center space-x-1 text-xs cursor-pointer border border-slate-200 shadow-sm"
+              className="p-1.5 text-slate-700 hover:text-blue-600 rounded-md hover:bg-slate-50 transition-all hidden sm:flex items-center space-x-1 text-xs cursor-pointer border border-slate-200 shadow-sm"
               title="Click to toggle currency between KRW (원) and USD ($)"
               id="currency-toggle-btn"
             >
-              <Globe className="h-4 w-4 text-blue-600 animate-pulse" />
-              <span className="font-bold">KO | {currency === 'KRW' ? 'KRW (₩)' : 'USD ($)'}</span>
+              <Globe className="h-3.5 w-3.5 text-blue-600 animate-pulse" />
+              <span className="font-extrabold">{currencySymbol} {currency}</span>
             </button>
             <div className="h-4 w-[1px] bg-slate-200 hidden sm:block"></div>
             
@@ -113,7 +155,7 @@ export default function Header({
                   className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200"
                   id="header-logout-btn"
                 >
-                  로그아웃
+                  {t.logout}
                 </button>
               </div>
             ) : (
@@ -123,14 +165,14 @@ export default function Header({
                   className="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg transition-all cursor-pointer border border-slate-200"
                   id="header-login-btn"
                 >
-                  로그인
+                  {t.login}
                 </button>
                 <button
                   onClick={() => onOpenAuth('signup')}
                   className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-sm"
                   id="header-signup-btn"
                 >
-                  회원가입
+                  {t.signup}
                 </button>
               </div>
             )}

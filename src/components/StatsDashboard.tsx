@@ -8,7 +8,7 @@ interface StatsDashboardProps {
   hotels?: Hotel[];
   activeSort: 'best' | 'cheapest' | 'fastest' | 'rating';
   setActiveSort: (sort: any) => void;
-  currency?: 'USD' | 'KRW';
+  currency?: string;
 }
 
 export default function StatsDashboard({ type, flights = [], hotels = [], activeSort, setActiveSort, currency = 'USD' }: StatsDashboardProps) {
@@ -84,12 +84,12 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
           onClick={() => setActiveSort('fastest')}
           className={`p-3 border rounded-lg text-left transition-all cursor-pointer ${
             activeSort === 'fastest'
-              ? 'bg-slate-700 border-slate-700 text-white shadow-sm'
+              ? 'bg-orange-500 border-orange-500 text-white shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300 text-slate-800'
           }`}
         >
           <div className="flex items-center space-x-1.5">
-            <Zap className={`h-3.5 w-3.5 ${activeSort === 'fastest' ? 'text-white' : 'text-slate-600'}`} />
+            <Zap className={`h-3.5 w-3.5 ${activeSort === 'fastest' ? 'text-white' : 'text-orange-500'}`} />
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase">가장 빠름</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
@@ -160,12 +160,12 @@ export default function StatsDashboard({ type, flights = [], hotels = [], active
           onClick={() => setActiveSort('best')}
           className={`p-3 border rounded-lg text-left transition-all cursor-pointer ${
             activeSort === 'best'
-              ? 'bg-slate-700 border-slate-700 text-white shadow-sm'
+              ? 'bg-violet-600 border-violet-600 text-white shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300 text-slate-800'
           }`}
         >
           <div className="flex items-center space-x-1.5">
-            <Compass className={`h-3.5 w-3.5 ${activeSort === 'best' ? 'text-white' : 'text-slate-600'}`} />
+            <Compass className={`h-3.5 w-3.5 ${activeSort === 'best' ? 'text-white' : 'text-violet-600'}`} />
             <span className="text-[10px] font-bold tracking-tight opacity-90 block uppercase font-sans">최다 후기</span>
           </div>
           <div className="mt-1 flex items-baseline space-x-1.5">
