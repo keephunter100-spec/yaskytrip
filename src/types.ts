@@ -61,6 +61,8 @@ export interface Hotel {
   amenities: string[];
   imageUrl: string;
   address: string;
+  lat?: number;
+  lng?: number;
   roomTypes: {
     name: string;
     price: number;
@@ -75,7 +77,7 @@ export interface Hotel {
 }
 
 export interface SearchQuery {
-  type: 'flights' | 'hotels';
+  type: 'flights' | 'hotels' | 'packages';
   tripType: 'round-trip' | 'one-way';
   fromCity: string;
   toCity: string;
@@ -103,7 +105,7 @@ export interface FilterOptions {
 
 export interface BookingDetails {
   id: string;
-  type: 'flight' | 'hotel';
+  type: 'flight' | 'hotel' | 'package';
   flight?: Flight;
   hotel?: Hotel;
   selectedRoomType?: string;
@@ -119,12 +121,29 @@ export interface BookingDetails {
   bookingDate: string;
 }
 
+export const CURRENCY_DATA: Record<string, { symbol: string; rate: number; prefix: boolean }> = {
+  USD: { symbol: '$', rate: 1, prefix: true },
+  KRW: { symbol: '₩', rate: 1400, prefix: true },
+  JPY: { symbol: '¥', rate: 155, prefix: true },
+  EUR: { symbol: '€', rate: 0.92, prefix: true },
+  GBP: { symbol: '£', rate: 0.79, prefix: true },
+  CNY: { symbol: '¥', rate: 7.25, prefix: true },
+  TWD: { symbol: 'NT$', rate: 32, prefix: true },
+  IDR: { symbol: 'Rp', rate: 16000, prefix: true },
+  MYR: { symbol: 'RM', rate: 4.70, prefix: true },
+  THB: { symbol: '฿', rate: 36, prefix: true },
+  VND: { symbol: '₫', rate: 25000, prefix: false },
+  RUB: { symbol: '₽', rate: 90, prefix: false },
+  TRY: { symbol: '₺', rate: 32, prefix: true },
+};
+
 export const EXCHANGE_RATE = 1400;
 
 export function formatPrice(priceInUSD: number, currency: string) {
-  if (currency === 'KRW') {
-    return `₩${Math.round(priceInUSD * EXCHANGE_RATE).toLocaleString()}`;
+  const info = CURRENCY_DATA[currency] || CURRENCY_DATA.USD;
+  const value = Math.round(priceInUSD * info.rate);
+  if (info.prefix) {
+    return `${info.symbol}${value.toLocaleString()}`;
   }
-  return `$${priceInUSD.toLocaleString()}`;
+  return `${value.toLocaleString()}${info.symbol}`;
 }
-
