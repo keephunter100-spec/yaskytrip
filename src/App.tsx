@@ -1,17 +1,143 @@
 import React, { useState, useEffect } from 'react';
+import { LANGUAGE_DEFAULT_CURRENCY } from './utils/translations';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import SearchForm from './components/SearchForm';
 import Filters from './components/Filters';
 import StatsDashboard from './components/StatsDashboard';
+import LanguageSelectionModal from './components/LanguageSelectionModal';
 import FlightCard from './components/FlightCard';
 import HotelCard from './components/HotelCard';
+import PackageCard from './components/PackageCard';
 import BookingModal from './components/BookingModal';
 import AuthModal from './components/AuthModal';
+import RefundPolicyModal from './components/RefundPolicyModal';
+import AISearchDrawer from './components/AISearchDrawer';
+import HotelMap from './components/HotelMap';
+import FlightMap from './components/FlightMap';
 import { generateFlights, generateHotels, AIRPORTS, CITIES } from './data';
 import { Flight, Hotel, SearchQuery, FilterOptions, BookingDetails, formatPrice } from './types';
-import { Plane, Hotel as HotelIcon, Briefcase, Trash2, ShieldCheck, Sparkles, ArrowRight, Compass, Heart, HeartOff, CheckCircle } from 'lucide-react';
+import { Plane, Hotel as HotelIcon, Briefcase, Trash2, ShieldCheck, Sparkles, ArrowRight, Compass, Heart, HeartOff, CheckCircle, Map, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+interface ParsedQuery {
+  type: 'flights' | 'hotels' | 'packages';
+  toCity: string;
+  fromCity: string;
+  departureDate: string;
+  returnDate: string;
+}
+
+const parseAISemanticQuery = (text: string): ParsedQuery => {
+  const lowercase = text.toLowerCase().trim();
+  
+  // Default values
+  const today = new Date().toISOString().split('T')[0];
+  const nextWeekDate = new Date();
+  nextWeekDate.setDate(nextWeekDate.getDate() + 7);
+  const nextWeek = nextWeekDate.toISOString().split('T')[0];
+  
+  let type: 'flights' | 'hotels' | 'packages' = 'flights';
+  let toCity = 'Tokyo';
+  let fromCity = 'Seoul';
+  let departureDate = today;
+  let returnDate = nextWeek;
+
+  // 1. Parse Search Type
+  if (lowercase.includes('호텔') || lowercase.includes('숙소') || lowercase.includes('숙박') || lowercase.includes('리조트')) {
+    type = 'hotels';
+  } else if (lowercase.includes('패키지') || lowercase.includes('결합')) {
+    type = 'packages';
+  } else {
+    type = 'flights';
+  }
+
+  // 2. Parse Destination City
+  const cityMap: { [key: string]: string } = {
+    '도쿄': 'Tokyo',
+    '오사카': 'Tokyo', // Fallback closest matching city (or Tokyo)
+    '뉴욕': 'New York',
+    '런던': 'London',
+    '파리': 'Paris',
+    '싱가포르': 'Singapore',
+    '시드니': 'Sydney',
+    '호놀룰루': 'Honolulu',
+    '후쿠오카': 'Tokyo', // Fallback closest matching
+    '서울': 'Seoul',
+    'tokyo': 'Tokyo',
+    'osaka': 'Tokyo',
+    'new york': 'New York',
+    'london': 'London',
+    'paris': 'Paris',
+    'singapore': 'Singapore',
+    'sydney': 'Sydney',
+    'honolulu': 'Honolulu',
+    'seoul': 'Seoul'
+  };
+
+  for (const [key, val] of Object.entries(cityMap)) {
+    if (lowercase.includes(key)) {
+      toCity = val;
+      break;
+    }
+  }
+
+  // Ensure toCity is not same as fromCity
+  if (toCity === 'Seoul' && fromCity === 'Seoul') {
+    toCity = 'Tokyo';
+  }
+
+  // 3. Parse Dates
+  if (lowercase.includes('다음 주말') || lowercase.includes('다음주 주말') || lowercase.includes('주말')) {
+    const todayObj = new Date();
+    const dayOfWeek = todayObj.getDay();
+    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7 || 7;
+    const nextSat = new Date();
+    nextSat.setDate(todayObj.getDate() + daysUntilSaturday);
+    
+    const nextSun = new Date(nextSat);
+    nextSun.setDate(nextSat.getDate() + 1);
+
+    departureDate = nextSat.toISOString().split('T')[0];
+    returnDate = nextSun.toISOString().split('T')[0];
+  } else if (lowercase.includes('내일')) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(tomorrow);
+    dayAfter.setDate(tomorrow.getDate() + 3);
+
+    departureDate = tomorrow.toISOString().split('T')[0];
+    returnDate = dayAfter.toISOString().split('T')[0];
+  } else if (lowercase.includes('한달 뒤') || lowercase.includes('한달후') || lowercase.includes('다음 달') || lowercase.includes('다음달')) {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const nextMonthReturn = new Date(nextMonth);
+    nextMonthReturn.setDate(nextMonth.getDate() + 5);
+
+    departureDate = nextMonth.toISOString().split('T')[0];
+    returnDate = nextMonthReturn.toISOString().split('T')[0];
+  } else {
+    const monthRegex = /(\d+)월/;
+    const match = lowercase.match(monthRegex);
+    if (match) {
+      const monthNum = parseInt(match[1], 10);
+      const year = new Date().getFullYear();
+      let parsedYear = year;
+      if (monthNum - 1 < new Date().getMonth()) {
+        parsedYear += 1;
+      }
+      
+      const targetDate = new Date(parsedYear, monthNum - 1, 15);
+      const targetReturnDate = new Date(targetDate);
+      targetReturnDate.setDate(targetDate.getDate() + 4);
+
+      departureDate = targetDate.toISOString().split('T')[0];
+      returnDate = targetReturnDate.toISOString().split('T')[0];
+    }
+  }
+
+  return { type, toCity, fromCity, departureDate, returnDate };
+};
 
 export default function App() {
   // Lock / Maintenance Screen State
@@ -34,14 +160,34 @@ export default function App() {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings'>('flights');
-  const [currency, setCurrency] = useState<'USD' | 'KRW'>(() => {
-    return (localStorage.getItem('yaskytrip_currency') as 'USD' | 'KRW') || 'USD';
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings' | 'packages'>('flights');
+  const [currency, setCurrency] = useState<string>(() => {
+    return localStorage.getItem('yaskytrip_currency') || 'USD';
   });
 
-  const handleCurrencyChange = (cur: 'USD' | 'KRW') => {
+  const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>(() => {
+    return localStorage.getItem('yaskytrip_selected_language_code') || 'ko';
+  });
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+
+  const language: 'KO' | 'EN' = selectedLanguageCode === 'ko' ? 'KO' : 'EN';
+
+  const handleCurrencyChange = (cur: string) => {
     setCurrency(cur);
     localStorage.setItem('yaskytrip_currency', cur);
+  };
+
+  const handleLanguageChange = (langCode: string) => {
+    setSelectedLanguageCode(langCode);
+    localStorage.setItem('yaskytrip_selected_language_code', langCode);
+    localStorage.setItem('yaskytrip_language', langCode === 'ko' ? 'KO' : 'EN');
+
+    // Automatically set default currency for this language/country
+    const defaultCur = LANGUAGE_DEFAULT_CURRENCY[langCode];
+    if (defaultCur) {
+      setCurrency(defaultCur);
+      localStorage.setItem('yaskytrip_currency', defaultCur);
+    }
   };
   
   // Set default query to Seoul -> Tokyo today
@@ -84,6 +230,11 @@ export default function App() {
   // Persistent Bookings (LocalStorage)
   const [bookings, setBookings] = useState<BookingDetails[]>([]);
 
+  // AI Semantic Search States
+  const [aiQuery, setAiQuery] = useState('');
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
+
   // Authentication states
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(() => {
     const saved = localStorage.getItem('yaskytrip_user_email');
@@ -112,6 +263,11 @@ export default function App() {
     initialMode: 'login',
   });
 
+  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
+  const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null);
+  const [mobileHotelView, setMobileHotelView] = useState<'list' | 'map'>('list');
+  const [resultsViewMode, setResultsViewMode] = useState<'list' | 'map'>('list');
+
   const handleOpenAuth = (mode: 'login' | 'signup') => {
     setAuthModal({
       isOpen: true,
@@ -132,7 +288,7 @@ export default function App() {
   // Modal State
   const [bookingModal, setBookingModal] = useState<{
     isOpen: boolean;
-    type: 'flight' | 'hotel';
+    type: 'flight' | 'hotel' | 'package';
     flight?: Flight;
     hotel?: Hotel;
     selectedRoomType?: string;
@@ -141,6 +297,8 @@ export default function App() {
     isOpen: false,
     type: 'flight',
   });
+
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
 
   // Load Bookings from localStorage on Mount
   useEffect(() => {
@@ -161,6 +319,35 @@ export default function App() {
   const saveBookings = (updatedBookings: BookingDetails[]) => {
     setBookings(updatedBookings);
     localStorage.setItem('voyage_bookings', JSON.stringify(updatedBookings));
+  };
+
+  const triggerAISample = (sample: string) => {
+    setAiQuery(sample);
+    handleAISubmit(sample);
+  };
+
+  const handleAISubmit = (customQuery?: string) => {
+    const queryToParse = customQuery || aiQuery || '다음 주말 오사카행 항공편';
+    setAiAnalyzing(true);
+    
+    setTimeout(() => {
+      const parsed = parseAISemanticQuery(queryToParse);
+      const updatedQuery: SearchQuery = {
+        type: parsed.type,
+        tripType: 'round-trip',
+        fromCity: parsed.fromCity,
+        toCity: parsed.toCity,
+        departureDate: parsed.departureDate,
+        returnDate: parsed.returnDate,
+        passengers: { adults: 1, children: 0, infants: 0 },
+        cabinClass: 'economy',
+        hotelGuests: 2,
+        hotelRooms: 1,
+      };
+      
+      handleSearch(updatedQuery);
+      setAiAnalyzing(false);
+    }, 600);
   };
 
   const handleSearch = (query: SearchQuery) => {
@@ -188,6 +375,34 @@ export default function App() {
         setFilters(f => ({ ...f, maxPrice, airlines: [] }));
         setActiveSort('best');
         setActiveTab('flights');
+      } else if (query.type === 'packages') {
+        const fromAirport = AIRPORTS.find(a => a.city === query.fromCity)?.code || 'ICN';
+        const toAirport = AIRPORTS.find(a => a.city === query.toCity)?.code || 'HND';
+        const flightResults = generateFlights(
+          fromAirport,
+          toAirport,
+          query.departureDate,
+          query.returnDate,
+          query.cabinClass,
+          query.passengers.adults + query.passengers.children
+        );
+        const hotelResults = generateHotels(query.toCity, query.hotelGuests, query.hotelRooms);
+        setFlights(flightResults);
+        setHotels(hotelResults);
+
+        const dep = new Date(query.departureDate);
+        const ret = new Date(query.returnDate || query.departureDate);
+        const diffTime = Math.abs(ret.getTime() - dep.getTime());
+        const nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        const totalPass = query.passengers.adults + query.passengers.children + query.passengers.infants;
+
+        const maxFlightPrice = flightResults.reduce((max, f) => f.price > max ? f.price : max, 500);
+        const maxHotelPrice = hotelResults.reduce((max, h) => h.pricePerNight > max ? h.pricePerNight : max, 300);
+        const maxCombinedPrice = Math.ceil((maxFlightPrice * totalPass + maxHotelPrice * nights * (query.hotelRooms || 1)) * 0.85);
+
+        setFilters(f => ({ ...f, maxPrice: maxCombinedPrice, hotelRating: 0, hotelAmenities: [], airlines: [] }));
+        setActiveSort('best');
+        setActiveTab('packages');
       } else {
         const results = generateHotels(query.toCity, query.hotelGuests, query.hotelRooms);
         setHotels(results);
@@ -264,9 +479,22 @@ export default function App() {
   });
 
   // Max pricing limit for dynamic range filters
+  const getPackageNights = () => {
+    if (!searchQuery.departureDate || !searchQuery.returnDate) return 1;
+    const dep = new Date(searchQuery.departureDate);
+    const ret = new Date(searchQuery.returnDate);
+    const diffTime = Math.abs(ret.getTime() - dep.getTime());
+    return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  };
+
   const maxPriceLimit = searchQuery.type === 'flights' 
     ? flights.reduce((max, f) => f.price > max ? f.price : max, 1000)
-    : hotels.reduce((max, h) => h.pricePerNight > max ? h.pricePerNight : max, 500);
+    : searchQuery.type === 'packages'
+      ? Math.ceil(
+          (flights.reduce((max, f) => f.price > max ? f.price : max, 1000) * (searchQuery.passengers.adults + searchQuery.passengers.children + searchQuery.passengers.infants) +
+          hotels.reduce((max, h) => h.pricePerNight > max ? h.pricePerNight : max, 500) * getPackageNights() * (searchQuery.hotelRooms || 1)) * 0.85
+        )
+      : hotels.reduce((max, h) => h.pricePerNight > max ? h.pricePerNight : max, 500);
 
   // Booking handlers
   const handleOpenFlightBooking = (flight: Flight) => {
@@ -284,6 +512,17 @@ export default function App() {
       hotel,
       selectedRoomType: roomName,
       hotelPrice: price,
+    });
+  };
+
+  const handleOpenPackageBooking = (flight: Flight, hotel: Hotel, totalPrice: number) => {
+    setBookingModal({
+      isOpen: true,
+      type: 'package',
+      flight,
+      hotel,
+      selectedRoomType: '디럭스 더블룸 (결합 혜택)',
+      hotelPrice: totalPrice,
     });
   };
 
@@ -395,6 +634,10 @@ export default function App() {
         currentUserEmail={currentUserEmail}
         onOpenAuth={handleOpenAuth}
         onLogout={handleLogout}
+        language={language}
+        setLanguage={handleLanguageChange}
+        selectedLanguageCode={selectedLanguageCode}
+        onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
       />
 
       {/* Main Container */}
@@ -402,17 +645,70 @@ export default function App() {
         
         {/* Search Engine Area */}
         <section className="space-y-4">
-          <div className="text-center sm:text-left space-y-1.5">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-center sm:justify-start space-x-2">
-              <Sparkles className="h-5 w-5 text-blue-600" />
-              <span>실시간 최저가 여행 검색</span>
-            </h1>
-            <p className="text-xs text-slate-500 font-medium max-w-xl">
-              YASKYTRIP은 전 세계 수많은 항공사와 명품 호텔 데이터를 실시간 분석하여 가장 최적화된 상품을 제안해 드립니다.
-            </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200/50 pb-4">
+            <div className="text-center sm:text-left space-y-1.5">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-center sm:justify-start space-x-2">
+                <Sparkles className="h-5 w-5 text-red-600" />
+                <span>{language === 'KO' ? '실시간 최저가 여행 검색' : 'Real-time Cheapest Travel Search'}</span>
+              </h1>
+              <p className="text-xs text-slate-500 font-medium max-w-xl">
+                {language === 'KO' 
+                  ? 'YASKYTRIP은 전 세계 수많은 항공사와 명품 호텔 데이터를 실시간 분석하여 가장 최적화된 상품을 제안해 드립니다.' 
+                  : 'YASKYTRIP analyzes real-time data from countless airlines and luxury hotels worldwide to suggest the most optimized deals.'}
+              </p>
+            </div>
+
+            {/* AI Smart Search Input Box */}
+            <div className="w-full md:w-auto flex flex-col items-stretch md:items-end max-w-md self-center md:self-auto">
+              <div 
+                onClick={() => setIsAiDrawerOpen(true)}
+                className="relative rounded-full p-[1.5px] bg-gradient-to-r from-orange-400 via-pink-400 to-red-500 shadow-[0_4px_20px_rgba(244,63,94,0.15)] hover:shadow-[0_4px_24px_rgba(244,63,94,0.25)] transition-all duration-300 w-full cursor-pointer animate-pulse"
+              >
+                <div className="flex items-center w-full bg-white rounded-full px-4 py-2 space-x-3">
+                  <Sparkles className="h-4 w-4 text-slate-800 fill-slate-800 shrink-0" />
+                  <input 
+                    type="text" 
+                    readOnly
+                    placeholder={language === 'KO' ? 'AI에게 물어보세요...' : 'Ask AI...'} 
+                    className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none font-semibold cursor-pointer"
+                  />
+                  <button 
+                    type="button"
+                    className="text-xs bg-gradient-to-r from-orange-500 to-red-500 text-white font-black px-4 py-1.5 rounded-full hover:opacity-90 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    {language === 'KO' ? '물어보기' : 'Ask'}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Quick tags for AI Search */}
+              <div className="flex flex-wrap gap-1.5 mt-2 justify-center md:justify-end">
+                <span className="text-[10px] text-slate-400 font-bold self-center mr-1">
+                  {language === 'KO' ? '💡 AI 빠른 질문:' : '💡 AI Quick Qs:'}
+                </span>
+                <button 
+                  onClick={() => setIsAiDrawerOpen(true)}
+                  className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
+                >
+                  {language === 'KO' ? '오사카 항공편 ✈️' : 'Osaka flights ✈️'}
+                </button>
+                <button 
+                  onClick={() => setIsAiDrawerOpen(true)}
+                  className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
+                >
+                  {language === 'KO' ? '도쿄 호텔 🏨' : 'Tokyo hotels 🏨'}
+                </button>
+                <button 
+                  onClick={() => setIsAiDrawerOpen(true)}
+                  className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
+                >
+                  {language === 'KO' ? '파리 패키지 📦' : 'Paris packages 📦'}
+                </button>
+              </div>
+            </div>
           </div>
 
-          <SearchForm onSearch={handleSearch} initialQuery={searchQuery} />
+          <SearchForm onSearch={handleSearch} initialQuery={searchQuery} language={language} selectedLanguageCode={selectedLanguageCode} />
         </section>
 
         {/* Searching Loader Screen */}
@@ -448,7 +744,7 @@ export default function App() {
                 <div className="flex justify-between items-center border-b border-gray-100 pb-3">
                   <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
                     <Briefcase className="h-4 w-4 text-blue-600" />
-                    <span>나의 예약 및 여정 발권 관리</span>
+                    <span>나의 예약 및 일정 발권 관리</span>
                   </h2>
                   <span className="text-[11px] font-bold text-gray-400">총 {bookings.length}개의 예정된 일정</span>
                 </div>
@@ -530,6 +826,41 @@ export default function App() {
                               </div>
                             </div>
                           )}
+
+                          {/* Package Reservation Detail */}
+                          {booking.type === 'package' && booking.flight && booking.hotel && (
+                            <div className="space-y-4">
+                              <div className="bg-blue-50/50 border border-blue-100 p-2.5 rounded-lg flex items-center justify-between">
+                                <span className="text-[10px] font-black text-blue-700 flex items-center space-x-1">
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  <span>결합 패키지 특별 혜택가 적용</span>
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                                <div>
+                                  <span className="text-xl font-black text-gray-900 font-sans">{booking.flight.outbound[0].departureAirport.code}</span>
+                                  <span className="block text-[10px] text-gray-400 font-medium">{booking.flight.outbound[0].departureAirport.city}</span>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                  <Plane className="h-4 w-4 text-blue-600 rotate-45 transform" />
+                                  <span className="text-[8px] font-bold text-slate-400 mt-1 uppercase">Seat 14A</span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xl font-black text-slate-900 font-sans">{booking.flight.outbound[booking.flight.outbound.length - 1].arrivalAirport.code}</span>
+                                  <span className="block text-[10px] text-slate-400 font-medium">{booking.flight.outbound[booking.flight.outbound.length - 1].arrivalAirport.city}</span>
+                                </div>
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-bold text-gray-900">{booking.hotel.name}</h3>
+                                <p className="text-[10px] text-gray-400">{booking.hotel.address.split(',')[0]}</p>
+                              </div>
+                              <div className="text-xs bg-slate-50 border border-slate-200 p-3 rounded space-y-1 text-slate-600">
+                                <p className="font-semibold text-gray-700">예약대표자: {booking.passengers[0].lastName}/{booking.passengers[0].firstName}</p>
+                                <p className="text-[10px]">객실타입: {booking.selectedRoomType || '디럭스 룸 (패키지 할인가)'}</p>
+                                <p className="text-[10px]">발권일자: {booking.bookingDate}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Actions and Pricing row */}
@@ -566,6 +897,8 @@ export default function App() {
                     availableAirlines={availableAirlines}
                     maxPriceLimit={maxPriceLimit}
                     currency={currency}
+                    language={language}
+                    selectedLanguageCode={selectedLanguageCode}
                   />
                 </aside>
 
@@ -579,13 +912,17 @@ export default function App() {
                         <h2 className="text-base font-bold text-gray-900">
                           {searchQuery.type === 'flights' 
                             ? `${searchQuery.fromCity} ➔ ${searchQuery.toCity} 항공권 검색 결과`
-                            : `${searchQuery.toCity} 주변 추천 명소 호텔 검색 결과`
+                            : searchQuery.type === 'packages'
+                              ? `${searchQuery.fromCity} ➔ ${searchQuery.toCity} 항공+호텔 패키지 결합 특가`
+                              : `${searchQuery.toCity} 주변 추천 명소 호텔 검색 결과`
                           }
                         </h2>
                         <span className="text-[10px] text-gray-400 font-medium">
                           {searchQuery.type === 'flights' 
                             ? `필터 통과한 항공편 ${sortedFlights.length}개 (전체 ${flights.length}개 중)`
-                            : `필터 통과한 호텔 ${sortedHotels.length}개 (전체 ${hotels.length}개 중)`
+                            : searchQuery.type === 'packages'
+                              ? `결합 가능한 단독 혜택 패키지 ${Math.min(sortedFlights.length, sortedHotels.length)}개`
+                              : `필터 통과한 호텔 ${sortedHotels.length}개 (전체 ${hotels.length}개 중)`
                           }
                         </span>
                       </div>
@@ -613,7 +950,16 @@ export default function App() {
                     
                     {/* FLIGHT CARDS */}
                     {searchQuery.type === 'flights' && (
-                      sortedFlights.length === 0 ? (
+                      resultsViewMode === 'map' ? (
+                        <FlightMap 
+                          flights={sortedFlights}
+                          selectedFlightId={selectedFlightId}
+                          onSelectFlight={(id) => setSelectedFlightId(id)}
+                          onBook={handleOpenFlightBooking}
+                          currency={currency}
+                          searchQuery={searchQuery}
+                        />
+                      ) : sortedFlights.length === 0 ? (
                         <div className="bg-white border border-slate-200 rounded-lg p-12 text-center space-y-2">
                           <p className="text-xs font-bold text-slate-700">지정하신 조건에 일치하는 항공권이 없습니다.</p>
                           <p className="text-[10px] text-slate-400">최대 예산 필터를 높이거나, 경유 횟수 선택 조건을 초기화해 보세요.</p>
@@ -639,7 +985,7 @@ export default function App() {
                       )
                     )}
 
-                    {/* HOTEL CARDS */}
+                    {/* HOTEL CARDS & MAP VIEW (KAYAK SPLIT STYLE) */}
                     {searchQuery.type === 'hotels' && (
                       sortedHotels.length === 0 ? (
                         <div className="bg-white border border-slate-200 rounded-lg p-12 text-center space-y-2">
@@ -647,15 +993,107 @@ export default function App() {
                           <p className="text-[10px] text-slate-400">최대 가격 슬라이더를 높이거나, 편의시설 필터를 완화해 보세요.</p>
                         </div>
                       ) : (
-                        sortedHotels.map((hotel) => (
-                          <HotelCard 
-                            key={hotel.id} 
-                            hotel={hotel} 
-                            onBook={handleOpenHotelBooking}
-                            searchQuery={searchQuery}
-                            currency={currency}
-                          />
-                        ))
+                        <div className="flex flex-col lg:flex-row gap-6 items-start">
+                          {/* Mobile View Toggle Tabs */}
+                          {resultsViewMode === 'map' && (
+                            <div className="flex lg:hidden bg-slate-100/80 p-1 border border-slate-200 rounded-lg w-full mb-2">
+                              <button
+                                type="button"
+                                onClick={() => setMobileHotelView('list')}
+                                className={`flex-1 text-center py-2 text-xs font-black rounded-md transition-all cursor-pointer ${
+                                  mobileHotelView === 'list' 
+                                    ? 'bg-blue-600 text-white shadow-sm' 
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                목록 보기 ({sortedHotels.length})
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setMobileHotelView('map')}
+                                className={`flex-1 text-center py-2 text-xs font-black rounded-md transition-all cursor-pointer ${
+                                  mobileHotelView === 'map' 
+                                    ? 'bg-blue-600 text-white shadow-sm' 
+                                    : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                              >
+                                지도 보기
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Left Panel: Hotel Cards List */}
+                          <div className={`${
+                            resultsViewMode === 'list'
+                              ? 'w-full space-y-4'
+                              : `w-full lg:w-[30%] max-h-[500px] lg:max-h-[calc(100vh-220px)] overflow-y-auto space-y-4 ${
+                                  mobileHotelView === 'map' ? 'hidden lg:block' : 'block'
+                                }`
+                          }`}>
+                            <div className="bg-amber-50/50 border border-amber-200/60 p-4 rounded-lg text-[11px] text-amber-800 leading-relaxed font-semibold flex items-start space-x-2">
+                              <span className="inline-flex h-2 w-2 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                              <span>원하시는 호텔 카드를 클릭하시면 지도 상에서 실시간 위치가 즉시 표시되며, 개별 위치와 주변 가격 정보가 가상 마커로 실시간 연동됩니다.</span>
+                            </div>
+
+                            {sortedHotels.map((hotel) => (
+                              <div 
+                                key={hotel.id}
+                                className={`transition-all duration-200 cursor-pointer ${
+                                  selectedHotelId === hotel.id ? 'ring-2 ring-blue-600 ring-offset-2 rounded-lg' : ''
+                                }`}
+                                onClick={() => setSelectedHotelId(hotel.id)}
+                              >
+                                <HotelCard 
+                                  hotel={hotel} 
+                                  onBook={handleOpenHotelBooking}
+                                  searchQuery={searchQuery}
+                                  currency={currency}
+                                />
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Right Panel: Interactive Simulated Map */}
+                          {resultsViewMode === 'map' && (
+                            <div className={`w-full lg:w-[70%] h-[500px] lg:h-[calc(100vh-220px)] lg:sticky lg:top-[200px] rounded-lg overflow-hidden border border-slate-200 shadow-md ${
+                              mobileHotelView === 'list' ? 'hidden lg:block' : 'block'
+                            }`}>
+                              <HotelMap 
+                                hotels={sortedHotels}
+                                selectedHotelId={selectedHotelId}
+                                onSelectHotel={(id) => setSelectedHotelId(id)}
+                                onBook={handleOpenHotelBooking}
+                                currency={currency}
+                                cityName={searchQuery.toCity}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    )}
+
+                    {/* PACKAGE CARDS */}
+                    {searchQuery.type === 'packages' && (
+                      Math.min(sortedFlights.length, sortedHotels.length) === 0 ? (
+                        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center space-y-2">
+                          <p className="text-xs font-bold text-slate-700">지정하신 조건에 일치하는 항공+호텔 결합 패키지가 없습니다.</p>
+                          <p className="text-[10px] text-slate-400">최대 가격 필터를 높이거나, 항공/호텔 상세 필터를 완화해 보세요.</p>
+                        </div>
+                      ) : (
+                        Array.from({ length: Math.min(sortedFlights.length, sortedHotels.length) }).map((_, index) => {
+                          const flight = sortedFlights[index];
+                          const hotel = sortedHotels[index];
+                          return (
+                            <PackageCard 
+                              key={`${flight.id}-${hotel.id}`}
+                              flight={flight}
+                              hotel={hotel}
+                              searchQuery={searchQuery}
+                              currency={currency}
+                              onBook={handleOpenPackageBooking}
+                            />
+                          );
+                        })
                       )
                     )}
 
@@ -671,7 +1109,13 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer onShowRefundPolicy={() => setIsRefundModalOpen(true)} />
+
+      {/* Refund & Cancellation Policy Modal */}
+      <RefundPolicyModal 
+        isOpen={isRefundModalOpen} 
+        onClose={() => setIsRefundModalOpen(false)} 
+      />
 
       {/* Booking Checkout Multi-step Modal Container */}
       <AnimatePresence>
@@ -697,6 +1141,46 @@ export default function App() {
         onClose={() => setAuthModal(prev => ({ ...prev, isOpen: false }))}
         onAuthSuccess={handleAuthSuccess}
       />
+
+      {/* AI Smart Search Drawer */}
+      <AISearchDrawer 
+        isOpen={isAiDrawerOpen}
+        onClose={() => setIsAiDrawerOpen(false)}
+        onSearchSubmit={handleAISubmit}
+      />
+
+      {/* Language Selection Modal */}
+      <LanguageSelectionModal
+        isOpen={isLanguageModalOpen}
+        onClose={() => setIsLanguageModalOpen(false)}
+        selectedLanguageCode={selectedLanguageCode}
+        onSelectLanguage={handleLanguageChange}
+        language={language}
+      />
+
+      {/* Floating View Mode Toggle Button */}
+      {searchTriggered && !searching && (activeTab === 'flights' || activeTab === 'hotels') && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+          <button
+            type="button"
+            onClick={() => setResultsViewMode(resultsViewMode === 'list' ? 'map' : 'list')}
+            className="bg-slate-900/95 hover:bg-slate-900 text-white font-black text-xs uppercase tracking-widest px-6 py-3.5 rounded-full shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center space-x-2.5 border border-slate-800/80 cursor-pointer pointer-events-auto"
+            id="floating-view-mode-toggle"
+          >
+            {resultsViewMode === 'list' ? (
+              <>
+                <Map className="h-4 w-4 text-blue-400 animate-pulse" />
+                <span>지도 보기 (Map View)</span>
+              </>
+            ) : (
+              <>
+                <List className="h-4 w-4 text-emerald-400" />
+                <span>목록 보기 (List View)</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -271,9 +271,15 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
     checkOutDate: selectedLanguageCode === 'ko' ? '체크아웃' : 'Check-out',
     passengers: getTranslation('travelers', selectedLanguageCode),
     roomAndGuests: selectedLanguageCode === 'ko' ? '객실 및 투숙객' : 'Rooms & Guests',
-    searchFlights: getTranslation('searchBtn', selectedLanguageCode),
-    searchHotels: getTranslation('searchBtn', selectedLanguageCode),
-    searchPackages: getTranslation('searchBtn', selectedLanguageCode),
+    searchFlights: selectedLanguageCode === 'ko' ? '항공권 검색하기' :
+                   selectedLanguageCode === 'ja' ? '航空券を検索' :
+                   selectedLanguageCode.startsWith('zh') ? '搜索机票' : 'Search Flights',
+    searchHotels: selectedLanguageCode === 'ko' ? '호텔 검색하기' :
+                  selectedLanguageCode === 'ja' ? 'ホテルを検索' :
+                  selectedLanguageCode.startsWith('zh') ? '搜索酒店' : 'Search Hotels',
+    searchPackages: selectedLanguageCode === 'ko' ? '항공권+숙소 검색하기' :
+                    selectedLanguageCode === 'ja' ? '航空券+ホテルを検索' :
+                    selectedLanguageCode.startsWith('zh') ? '搜索机票+酒店' : 'Search Flight+Hotel',
     adults: selectedLanguageCode === 'ko' ? '성인' : 'Adults',
     children: selectedLanguageCode === 'ko' ? '소아' : 'Children',
     infants: selectedLanguageCode === 'ko' ? '유아' : 'Infants',
@@ -963,7 +969,7 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
                 {activeType === 'flights' 
                   ? t.searchFlights 
                   : activeType === 'packages'
-                    ? (isEn ? 'Search Flight+Hotel' : '항공권+숙소 검색하기')
+                    ? t.searchPackages
                     : t.searchHotels
                 }
               </span>

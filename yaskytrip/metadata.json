@@ -1,6 +1,0 @@
-{
-  "name": "YASKYTRIP",
-  "description": "A sleek, interactive flight and hotel search engine with advanced filtering, sorting, and booking simulation.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

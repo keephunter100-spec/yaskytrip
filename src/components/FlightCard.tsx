@@ -275,7 +275,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
               <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4 items-center">
                 {/* Departure Time */}
                 <div className="text-left">
-                  <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{firstOutbound.departureTime}</span>
+                  <span className="block text-2xl font-black text-slate-900 tracking-tight">{firstOutbound.departureTime}</span>
                   <span className="block text-[11px] text-slate-400 font-bold font-sans mt-0.5">
                     {firstOutbound.departureAirport.code} · {outDateFormatted || '가는 날'}
                   </span>
@@ -327,7 +327,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
 
                 {/* Arrival Time */}
                 <div className="text-right sm:text-center">
-                  <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{lastOutbound.arrivalTime}</span>
+                  <span className="block text-2xl font-black text-slate-900 tracking-tight">{lastOutbound.arrivalTime}</span>
                   <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
                     {lastOutbound.arrivalAirport.code} · {outDateFormatted || '가는 날'}
                   </span>
@@ -342,7 +342,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4 items-center">
                   {/* Departure */}
                   <div className="text-left">
-                    <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{firstInbound.departureTime}</span>
+                    <span className="block text-2xl font-black text-slate-900 tracking-tight">{firstInbound.departureTime}</span>
                     <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
                       {firstInbound.departureAirport.code} · {inDateFormatted || '오는 날'}
                     </span>
@@ -394,7 +394,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
 
                   {/* Arrival */}
                   <div className="text-right sm:text-center">
-                    <span className="block text-lg font-extrabold text-slate-800 tracking-tight">{lastInbound.arrivalTime}</span>
+                    <span className="block text-2xl font-black text-slate-900 tracking-tight">{lastInbound.arrivalTime}</span>
                     <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
                       {lastInbound.arrivalAirport.code} · {inDateFormatted || '오는 날'}
                     </span>
@@ -450,7 +450,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
             {/* Price section */}
             <div className="my-3">
               <div className="flex items-center justify-end space-x-1">
-                <span className="text-2xl font-black text-slate-900 font-sans tracking-tight">
+                <span className="text-3xl font-black text-slate-900 font-sans tracking-tight">
                   {formatPrice(flight.price, currency)}
                 </span>
                 <button 

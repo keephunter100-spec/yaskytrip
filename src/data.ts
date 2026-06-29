@@ -3,6 +3,7 @@ import { Airport, City, Airline, Flight, FlightSegment, Hotel } from './types';
 export const AIRLINES: Airline[] = [
   { code: 'KE', name: 'Korean Air', logo: '✈️' },
   { code: 'OZ', name: 'Asiana Airlines', logo: '✈️' },
+  { code: 'YP', name: 'Air Premia', logo: '✈️' },
   { code: 'JL', name: 'Japan Airlines', logo: '🇯🇵' },
   { code: 'NH', name: 'All Nippon Airways', logo: '💙' },
   { code: 'DL', name: 'Delta Air Lines', logo: '🔺' },
@@ -136,6 +137,8 @@ export function generateFlights(
       airline = AIRLINES.find(a => a.code === 'KE') || AIRLINES[0];
     } else if (i === 1) {
       airline = AIRLINES.find(a => a.code === 'OZ') || AIRLINES[1];
+    } else if (i === 2) {
+      airline = AIRLINES.find(a => a.code === 'YP') || AIRLINES[2];
     }
 
     // Determine stopovers
@@ -391,19 +394,73 @@ export function generateHotels(
       address = address.replace('Downtown Core', 'Champs-Élysées, Paris').replace('Arts District', 'Le Marais, Paris');
     }
 
+    // Determine name, score, reviews, and ratings
+    let name = preset.name.replace('The Grand', `The ${city.name} Grand`).replace('Metropolitan', `${city.name} Metro`);
+    let reviewScore = Number((preset.reviewScore + (random() * 0.4 - 0.2)).toFixed(1));
+    let reviewCount = preset.reviewCount + Math.floor(random() * 200 - 100);
+    let rating = preset.rating;
+    let finalPrice = finalPricePerNight;
+
+    if (city.id === 'NEWYORK') {
+      if (i === 0) {
+        name = '센트럴 파크 웨스트 호스텔';
+        reviewScore = 5.2;
+        reviewCount = 2102;
+        rating = 2;
+        finalPrice = 166; // approx 232,551원
+        address = '맨해튼, 뉴욕';
+      } else if (i === 1) {
+        name = '포드 타임스 스퀘어';
+        reviewScore = 8.6;
+        reviewCount = 16365;
+        rating = 3;
+        finalPrice = 234; // approx 327,698원
+        address = '맨해튼, 뉴욕';
+      }
+    }
+
+    // Base city coordinates for map layout
+    let baseLat = 37.5665;
+    let baseLng = 126.9780;
+    if (city.id === 'SEOUL') {
+      baseLat = 37.5665; baseLng = 126.9780;
+    } else if (city.id === 'TOKYO') {
+      baseLat = 35.6762; baseLng = 139.6503;
+    } else if (city.id === 'NEWYORK') {
+      baseLat = 40.7829; baseLng = -73.9654; // Manhattan Central Park area
+    } else if (city.id === 'LONDON') {
+      baseLat = 51.5074; baseLng = -0.1278;
+    } else if (city.id === 'PARIS') {
+      baseLat = 48.8566; baseLng = 2.3522;
+    } else if (city.id === 'SINGAPORE') {
+      baseLat = 1.3521; baseLng = 103.8198;
+    } else if (city.id === 'SYDNEY') {
+      baseLat = -33.8688; baseLng = 151.2093;
+    } else if (city.id === 'HONOLULU') {
+      baseLat = 21.3069; baseLng = -157.8583;
+    }
+
+    // Generate a deterministic offset for this hotel index
+    const angle = (i / hotelCount) * 2 * Math.PI;
+    const radius = 0.005 + random() * 0.010; // spread locally
+    const lat = baseLat + Math.cos(angle) * radius * 0.7;
+    const lng = baseLng + Math.sin(angle) * radius;
+
     hotels.push({
       id: `HT-${city.id}-${i}`,
-      name: preset.name.replace('The Grand', `The ${city.name} Grand`).replace('Metropolitan', `${city.name} Metro`),
+      name: name,
       city: city.name,
       country: city.country,
-      rating: preset.rating,
-      reviewScore: Number((preset.reviewScore + (random() * 0.4 - 0.2)).toFixed(1)),
-      reviewCount: preset.reviewCount + Math.floor(random() * 200 - 100),
-      pricePerNight: finalPricePerNight,
+      rating: rating,
+      reviewScore: reviewScore,
+      reviewCount: reviewCount,
+      pricePerNight: finalPrice,
       currency: 'USD',
       amenities: [...preset.amenities],
       imageUrl: preset.imageUrl,
       address: address,
+      lat: lat,
+      lng: lng,
       roomTypes: roomTypes,
       reviews: preset.reviews,
     });
