@@ -3,7 +3,7 @@ import { DollarSign, Zap, Sparkles, Star, Award, Compass } from 'lucide-react';
 import { Flight, Hotel, formatPrice } from '../types';
 
 interface StatsDashboardProps {
-  type: 'flights' | 'hotels';
+  type: 'flights' | 'hotels' | 'packages';
   flights?: Flight[];
   hotels?: Hotel[];
   activeSort: 'best' | 'cheapest' | 'fastest' | 'rating';

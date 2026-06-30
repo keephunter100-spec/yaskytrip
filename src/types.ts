@@ -77,7 +77,7 @@ export interface Hotel {
 }
 
 export interface SearchQuery {
-  type: 'flights' | 'hotels' | 'packages';
+  type: 'flights' | 'hotels' | 'packages' | 'cars' | 'deals';
   tripType: 'round-trip' | 'one-way';
   fromCity: string;
   toCity: string;
@@ -103,11 +103,41 @@ export interface FilterOptions {
   onlyHighCommission: boolean; // Only recommend flights with 3%+ commission
 }
 
+export interface CarRental {
+  id: string;
+  provider: string;
+  type: 'compact' | 'suv' | 'sedan' | 'luxury' | 'electric';
+  name: string;
+  pricePerDay: number;
+  currency: string;
+  transmission: 'auto' | 'manual';
+  fuelType: 'gasoline' | 'diesel' | 'electric' | 'hybrid';
+  seats: number;
+  imageUrl: string;
+  rating: number;
+  reviewCount: number;
+  features: string[];
+}
+
+export interface DiscountDeal {
+  id: string;
+  title: string;
+  description: string;
+  category: 'flight' | 'hotel' | 'car' | 'card' | 'seasonal';
+  discountAmount: string;
+  promoCode?: string;
+  expiresAt: string;
+  sponsor: string;
+  imageUrl: string;
+  terms: string;
+}
+
 export interface BookingDetails {
   id: string;
-  type: 'flight' | 'hotel' | 'package';
+  type: 'flight' | 'hotel' | 'package' | 'car';
   flight?: Flight;
   hotel?: Hotel;
+  car?: CarRental;
   selectedRoomType?: string;
   passengers: {
     firstName: string;

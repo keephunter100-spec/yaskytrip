@@ -9,6 +9,7 @@ interface PackageCardProps {
   onBook: (flight: Flight, hotel: Hotel, totalPrice: number) => void;
   searchQuery: SearchQuery;
   currency?: string;
+  selectedLanguageCode?: string;
 }
 
 const PackageCard: React.FC<PackageCardProps> = ({
@@ -16,9 +17,11 @@ const PackageCard: React.FC<PackageCardProps> = ({
   hotel,
   onBook,
   searchQuery,
-  currency = 'USD'
+  currency = 'USD',
+  selectedLanguageCode = 'ko'
 }) => {
   const [hovered, setHovered] = useState(false);
+  const isKo = selectedLanguageCode === 'ko';
 
   // Calculate nights
   const getPackageNights = () => {
@@ -44,7 +47,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
   const formatDuration = (mins: number) => {
     const hours = Math.floor(mins / 60);
     const remainingMins = mins % 60;
-    return `${hours}시간 ${remainingMins}분`;
+    return isKo ? `${hours}시간 ${remainingMins}분` : `${hours}h ${remainingMins}m`;
   };
 
   return (
@@ -70,11 +73,11 @@ const PackageCard: React.FC<PackageCardProps> = ({
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           <span className="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center space-x-1 uppercase tracking-wider shadow-sm">
             <Sparkles className="h-3 w-3" />
-            <span>최저가 결합 패키지</span>
+            <span>{isKo ? '최저가 결합 패키지' : 'Best Price Package'}</span>
           </span>
           <span className="bg-emerald-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center space-x-1 uppercase tracking-wider shadow-sm self-start">
             <Percent className="h-3 w-3" />
-            <span>15% 결합 할인</span>
+            <span>{isKo ? '15% 결합 할인' : '15% Bundle Discount'}</span>
           </span>
         </div>
 
@@ -84,7 +87,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
             {Array.from({ length: hotel.rating }).map((_, idx) => (
               <Star key={idx} className="h-2.5 w-2.5 text-white fill-white" />
             ))}
-            <span className="ml-1">{hotel.rating}성급</span>
+            <span className="ml-1">{isKo ? `${hotel.rating}성급` : `${hotel.rating}-Star`}</span>
           </div>
           <h3 className="text-base font-black truncate leading-tight">{hotel.name}</h3>
           <p className="text-[10px] text-slate-300 truncate mt-0.5 flex items-center space-x-1">
@@ -102,7 +105,12 @@ const PackageCard: React.FC<PackageCardProps> = ({
           <div>
             <div className="flex items-center space-x-2 text-xs font-black text-slate-800 mb-3 bg-slate-50 py-1 px-2.5 rounded-lg w-max">
               <Plane className="h-3.5 w-3.5 text-blue-600 rotate-45" />
-              <span>왕복 항공권 정보 ({flight.cabinClass === 'economy' ? '일반석' : '비즈니스석'})</span>
+              <span>
+                {isKo 
+                  ? `왕복 항공권 정보 (${flight.cabinClass === 'economy' ? '일반석' : '비즈니스석'})`
+                  : `Roundtrip Flight Details (${flight.cabinClass === 'economy' ? 'Economy' : 'Business'})`
+                }
+              </span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
@@ -122,7 +130,10 @@ const PackageCard: React.FC<PackageCardProps> = ({
                   <div className="h-1.5 w-1.5 rounded-full bg-slate-300 z-10" />
                 </div>
                 <span className="text-[9px] text-slate-500 font-bold mt-1">
-                  {flight.stopsOutbound === 0 ? '직항' : `경유 ${flight.stopsOutbound}회`}
+                  {flight.stopsOutbound === 0 
+                    ? (isKo ? '직항' : 'Non-stop') 
+                    : (isKo ? `경유 ${flight.stopsOutbound}회` : `${flight.stopsOutbound} Stop${flight.stopsOutbound > 1 ? 's' : ''}`)
+                  }
                 </span>
               </div>
 
@@ -135,10 +146,10 @@ const PackageCard: React.FC<PackageCardProps> = ({
             
             {/* Airline Tag */}
             <div className="mt-2.5 flex items-center justify-between text-[10px] text-slate-400 font-medium">
-              <span className="font-bold text-slate-600">항공사: {flight.outbound[0].airline.name}</span>
+              <span className="font-bold text-slate-600">{isKo ? `항공사: ${flight.outbound[0].airline.name}` : `Airline: ${flight.outbound[0].airline.name}`}</span>
               <span className="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded flex items-center space-x-1">
                 <Check className="h-3 w-3" />
-                <span>무료 위탁수하물 포함</span>
+                <span>{isKo ? '무료 위탁수하물 포함' : 'Free Checked Baggage Included'}</span>
               </span>
             </div>
           </div>
@@ -147,7 +158,12 @@ const PackageCard: React.FC<PackageCardProps> = ({
           <div className="border-t border-slate-100 pt-4">
             <div className="flex items-center space-x-2 text-xs font-black text-slate-800 mb-2.5 bg-slate-50 py-1 px-2.5 rounded-lg w-max">
               <HotelIcon className="h-3.5 w-3.5 text-blue-600" />
-              <span>호텔 투숙 정보 ({rooms}객실 / {nights}박 / 투숙 {totalPassengers}명)</span>
+              <span>
+                {isKo 
+                  ? `호텔 투숙 정보 (${rooms}객실 / {nights}박 / 투숙 {totalPassengers}명)`
+                  : `Hotel Details (${rooms} Room${rooms > 1 ? 's' : ''} / ${nights} Night${nights > 1 ? 's' : ''} / ${totalPassengers} Guest${totalPassengers > 1 ? 's' : ''})`
+                }
+              </span>
             </div>
             
             <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
@@ -155,12 +171,12 @@ const PackageCard: React.FC<PackageCardProps> = ({
                 <div key={idx} className="flex items-center space-x-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
                   <span className="font-medium truncate">
-                    {amenity === 'Free WiFi' ? '무료 초고속 와이파이' :
-                     amenity === 'Infinity Pool' ? '야외 인피니티 풀' :
-                     amenity === 'Luxury Spa' ? '럭셔리 스파 서비스' :
-                     amenity === 'Fitness Center' ? '24시 피트니스' :
-                     amenity === 'Free Breakfast' ? '무료 뷔페 조식' :
-                     amenity === 'Rooftop Bar' ? '루프탑 테라스 바' : amenity}
+                    {amenity === 'Free WiFi' ? (isKo ? '무료 초고속 와이파이' : 'Free High-speed WiFi') :
+                     amenity === 'Infinity Pool' ? (isKo ? '야외 인피니티 풀' : 'Outdoor Infinity Pool') :
+                     amenity === 'Luxury Spa' ? (isKo ? '럭셔리 스파 서비스' : 'Luxury Spa Service') :
+                     amenity === 'Fitness Center' ? (isKo ? '24시 피트니스' : '24h Fitness Center') :
+                     amenity === 'Free Breakfast' ? (isKo ? '무료 뷔페 조식' : 'Free Buffet Breakfast') :
+                     amenity === 'Rooftop Bar' ? (isKo ? '루프탑 테라스 바' : 'Rooftop Terrace Bar') : amenity}
                   </span>
                 </div>
               ))}
@@ -176,13 +192,13 @@ const PackageCard: React.FC<PackageCardProps> = ({
           
           {/* Price details Breakdown */}
           <div className="space-y-1.5">
-            <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">상세 분할 요금</span>
+            <span className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">{isKo ? '상세 분할 요금' : 'Itemized Price'}</span>
             <div className="flex justify-between text-xs text-slate-500 font-semibold">
-              <span>왕복 항공 ({totalPassengers}명)</span>
+              <span>{isKo ? `왕복 항공 (${totalPassengers}명)` : `Roundtrip Flight (${totalPassengers} pax)`}</span>
               <span>{formatPrice(flightCostTotal, currency)}</span>
             </div>
             <div className="flex justify-between text-xs text-slate-500 font-semibold">
-              <span>럭셔리 호텔 ({nights}박)</span>
+              <span>{isKo ? `럭셔리 호텔 (${nights}박)` : `Luxury Hotel (${nights} nights)`}</span>
               <span>{formatPrice(hotelCostTotal, currency)}</span>
             </div>
           </div>
@@ -192,20 +208,20 @@ const PackageCard: React.FC<PackageCardProps> = ({
           {/* Bundle total pricing */}
           <div>
             <div className="flex items-baseline justify-between text-xs font-bold text-slate-400">
-              <span>개별 예약 총가</span>
+              <span>{isKo ? '개별 예약 총가' : 'Regular Total'}</span>
               <span className="line-through">{formatPrice(originalTotal, currency)}</span>
             </div>
             
             <div className="flex items-center justify-between text-emerald-600 font-bold text-xs mt-1 bg-emerald-50 p-1.5 rounded-lg border border-emerald-100/50">
-              <span>패키지 할인 15%</span>
+              <span>{isKo ? '패키지 할인 15%' : 'Package Discount 15%'}</span>
               <span>-{formatPrice(savingsAmount, currency)}</span>
             </div>
 
             <div className="mt-4">
-              <span className="block text-[10px] font-black text-blue-600 uppercase tracking-wider">결합 패키지 특별가</span>
+              <span className="block text-[10px] font-black text-blue-600 uppercase tracking-wider">{isKo ? '결합 패키지 특별가' : 'Combined Bundle Price'}</span>
               <div className="flex items-baseline space-x-1 mt-0.5">
                 <span className="text-2xl font-sans font-black text-slate-900">{formatPrice(bundleTotal, currency)}</span>
-                <span className="text-xs text-slate-400 font-bold">/ 전체 일정</span>
+                <span className="text-xs text-slate-400 font-bold">{isKo ? '/ 전체 일정' : '/ total stay'}</span>
               </div>
             </div>
           </div>
@@ -218,7 +234,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
           className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl transition-all duration-200 mt-6 shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer flex items-center justify-center space-x-2"
           id={`book-package-btn-${flight.id}`}
         >
-          <span>패키지 예약하기</span>
+          <span>{isKo ? '패키지 예약하기' : 'Book Package Bundle'}</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>

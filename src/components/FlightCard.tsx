@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Flight, FlightSegment, SearchQuery, formatPrice } from '../types';
-import { Plane, ChevronDown, ChevronUp, Clock, AlertCircle, Luggage, Coffee, ShieldAlert, Leaf, ExternalLink } from 'lucide-react';
+import { Plane, ChevronDown, ChevronUp, Clock, AlertCircle, Luggage, Coffee, ShieldAlert, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface FlightCardProps {
@@ -9,10 +9,19 @@ interface FlightCardProps {
   tag?: 'cheapest' | 'fastest' | 'best';
   searchQuery?: SearchQuery;
   currency?: string;
+  selectedLanguageCode?: string;
 }
 
-const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuery, currency = 'USD' }) => {
+const FlightCard: React.FC<FlightCardProps> = ({ 
+  flight, 
+  onBook, 
+  tag, 
+  searchQuery, 
+  currency = 'USD',
+  selectedLanguageCode = 'ko'
+}) => {
   const [expanded, setExpanded] = useState(false);
+  const isKo = selectedLanguageCode === 'ko';
 
   const formatDateToDDMM = (dateStr: string) => {
     if (!dateStr) return '';
@@ -44,16 +53,16 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
   const formatDuration = (mins: number) => {
     const hours = Math.floor(mins / 60);
     const remainingMins = mins % 60;
-    return `${hours}시간 ${remainingMins}분`;
+    return isKo ? `${hours}시간 ${remainingMins}분` : `${hours}h ${remainingMins}m`;
   };
 
   const getCabinClassLabel = (cls: string) => {
     switch (cls) {
-      case 'economy': return '일반석';
-      case 'premium': return '프리미엄 일반석';
-      case 'business': return '비즈니스석';
-      case 'first': return '일등석';
-      default: return '일반석';
+      case 'economy': return isKo ? '일반석' : 'Economy';
+      case 'premium': return isKo ? '프리미엄 일반석' : 'Premium Economy';
+      case 'business': return isKo ? '비즈니스석' : 'Business';
+      case 'first': return isKo ? '일등석' : 'First Class';
+      default: return isKo ? '일반석' : 'Economy';
     }
   };
 
@@ -62,7 +71,10 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return '';
-      return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+      if (isKo) {
+        return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+      }
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     } catch (e) {
       return '';
     }
@@ -245,21 +257,21 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
       <div className="flex flex-wrap items-center gap-1.5 px-6 pt-5">
         {tag === 'cheapest' && (
           <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-emerald-100 uppercase tracking-wider">
-            최저가 요금 💸
+            {isKo ? '최저가 요금 💸' : 'Cheapest Rate 💸'}
           </span>
         )}
         {tag === 'fastest' && (
           <span className="bg-amber-50 text-amber-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-amber-100 uppercase tracking-wider">
-            최단 비행시간 ⚡
+            {isKo ? '최단 비행시간 ⚡' : 'Fastest Flight ⚡'}
           </span>
         )}
         {tag === 'best' && (
           <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-blue-100 uppercase tracking-wider">
-            최적 추천 일정 ⭐
+            {isKo ? '최적 추천 일정 ⭐' : 'Best Value ⭐'}
           </span>
         )}
         <span className="bg-teal-50/60 text-teal-700 text-[10px] font-black px-2.5 py-1 rounded-md border border-teal-100/50">
-          플렉시블 티켓으로 업그레이드 가능
+          {isKo ? '플렉시블 티켓으로 업그레이드 가능' : 'Flexible ticket upgrade available'}
         </span>
       </div>
 
@@ -277,7 +289,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 <div className="text-left">
                   <span className="block text-2xl font-black text-slate-900 tracking-tight">{firstOutbound.departureTime}</span>
                   <span className="block text-[11px] text-slate-400 font-bold font-sans mt-0.5">
-                    {firstOutbound.departureAirport.code} · {outDateFormatted || '가는 날'}
+                    {firstOutbound.departureAirport.code} · {outDateFormatted || (isKo ? '가는 날' : 'Departure')}
                   </span>
                 </div>
 
@@ -287,11 +299,11 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                   <div className="z-10 bg-white px-2">
                     {flight.stopsOutbound === 0 ? (
                       <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-black">
-                        직항
+                        {isKo ? '직항' : 'Non-stop'}
                       </span>
                     ) : (
                       <span className="text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full font-black">
-                        경유 {flight.stopsOutbound}회
+                        {isKo ? `경유 ${flight.stopsOutbound}회` : `${flight.stopsOutbound} Stop${flight.stopsOutbound > 1 ? 's' : ''}`}
                       </span>
                     )}
                   </div>
@@ -329,7 +341,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 <div className="text-right sm:text-center">
                   <span className="block text-2xl font-black text-slate-900 tracking-tight">{lastOutbound.arrivalTime}</span>
                   <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
-                    {lastOutbound.arrivalAirport.code} · {outDateFormatted || '가는 날'}
+                    {lastOutbound.arrivalAirport.code} · {outDateFormatted || (isKo ? '가는 날' : 'Departure')}
                   </span>
                 </div>
               </div>
@@ -344,7 +356,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                   <div className="text-left">
                     <span className="block text-2xl font-black text-slate-900 tracking-tight">{firstInbound.departureTime}</span>
                     <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
-                      {firstInbound.departureAirport.code} · {inDateFormatted || '오는 날'}
+                      {firstInbound.departureAirport.code} · {inDateFormatted || (isKo ? '오는 날' : 'Return')}
                     </span>
                   </div>
 
@@ -354,11 +366,11 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                     <div className="z-10 bg-white px-2">
                       {flight.stopsInbound === 0 ? (
                         <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-black">
-                          직항
+                          {isKo ? '직항' : 'Non-stop'}
                         </span>
                       ) : (
                         <span className="text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full font-black">
-                          경유 {flight.stopsInbound}회
+                          {isKo ? `경유 ${flight.stopsInbound}회` : `${flight.stopsInbound} Stop${flight.stopsInbound > 1 ? 's' : ''}`}
                         </span>
                       )}
                     </div>
@@ -396,7 +408,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                   <div className="text-right sm:text-center">
                     <span className="block text-2xl font-black text-slate-900 tracking-tight">{lastInbound.arrivalTime}</span>
                     <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
-                      {lastInbound.arrivalAirport.code} · {inDateFormatted || '오는 날'}
+                      {lastInbound.arrivalAirport.code} · {inDateFormatted || (isKo ? '오는 날' : 'Return')}
                     </span>
                   </div>
                 </div>
@@ -428,11 +440,11 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
               
               {/* Luxury-style Baggage Check Icons */}
               <div className="flex items-center space-x-2">
-                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title="기내 수하물 포함">
+                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title={isKo ? "기내 수하물 포함" : "Cabin baggage included"}>
                   <Luggage className="h-4 w-4 text-slate-500" />
                   <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✓</span>
                 </div>
-                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title="위탁 수하물 포함 여부">
+                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title={isKo ? "위탁 수하물 포함 여부" : "Checked baggage included"}>
                   <Luggage className="h-4 w-4 text-slate-500" />
                   {flight.baggageIncluded ? (
                     <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✓</span>
@@ -440,7 +452,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                     <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-slate-300 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✕</span>
                   )}
                 </div>
-                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title="모바일 탑승권 지원">
+                <div className="relative group p-1.5 bg-slate-50 border border-slate-100 rounded-lg shadow-3xs" title={isKo ? "모바일 탑승권 지원" : "Mobile boarding pass supported"}>
                   <Clock className="h-4 w-4 text-slate-500" />
                   <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-extrabold">✓</span>
                 </div>
@@ -456,12 +468,17 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 <button 
                   type="button" 
                   className="p-0.5 text-slate-300 hover:text-slate-500 transition-colors cursor-pointer"
-                  title="세금 및 유류할증료 포함 총액"
+                  title={isKo ? "세금 및 유류할증료 포함 총액" : "Total price including taxes & surcharges"}
                 >
                   <AlertCircle className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <span className="text-[10px] text-slate-400 font-bold block mt-0.5">왕복·성인 1인 기준 총액</span>
+              <span className="text-[10px] text-slate-400 font-bold block mt-0.5">
+                {isKo 
+                  ? '왕복·성인 1인 기준 총액' 
+                  : (searchQuery?.tripType === 'one-way' ? 'One way · Total per adult' : 'Round trip · Total per adult')
+                }
+              </span>
             </div>
 
             {/* Structured Buttons */}
@@ -472,7 +489,7 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center space-x-1"
                 id={`book-flight-btn-${flight.id}`}
               >
-                <span>일정 선택 및 예약</span>
+                <span>{isKo ? '일정 선택 및 예약' : 'Select & Book'}</span>
               </button>
 
               <button
@@ -480,7 +497,12 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 onClick={() => setExpanded(!expanded)}
                 className="h-9 w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 font-extrabold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer shadow-3xs"
               >
-                <span>비행 정보 보기</span>
+                <span>
+                  {isKo 
+                    ? (expanded ? '비행 정보 접기' : '비행 정보 보기') 
+                    : (expanded ? 'Hide Flight Details' : 'Show Flight Details')
+                  }
+                </span>
                 {expanded ? (
                   <ChevronUp className="h-3.5 w-3.5 text-slate-500 shrink-0" />
                 ) : (
@@ -493,11 +515,6 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
 
         </div>
 
-        {/* Dynamic Carbon Emission Badge */}
-        <div className="mt-4 flex items-center space-x-2 text-[10px] text-emerald-700 bg-emerald-50/50 border border-emerald-100/50 p-2.5 rounded-xl font-medium">
-          <Leaf className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-          <span>친환경 일정: 이 비행은 다른 경로 대비 이산화탄소 배출량이 약 <b>{flight.carbonEmissionKg}kg</b> 낮습니다.</span>
-        </div>
       </div>
 
       {/* Expanded Details Timeline (Accordion Content) */}
@@ -515,7 +532,12 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
               <div>
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center">
                   <Plane className="h-4 w-4 mr-1.5 text-blue-600 rotate-45 transform" />
-                  <span>가는 날 여정 상세 정보 ({firstOutbound.departureAirport.city} ➔ {lastOutbound.arrivalAirport.city})</span>
+                  <span>
+                    {isKo 
+                      ? `가는 날 여정 상세 정보 (${firstOutbound.departureAirport.city} ➔ ${lastOutbound.arrivalAirport.city})`
+                      : `Departure Flight Details (${firstOutbound.departureAirport.city} ➔ ${lastOutbound.arrivalAirport.city})`
+                    }
+                  </span>
                 </h4>
                 
                 <div className="relative border-l-2 border-dashed border-gray-300 ml-4 pl-6 space-y-6">
@@ -545,7 +567,12 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                       {index < outboundSegments.length - 1 && (
                         <div className="my-3 p-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-[10px] font-bold flex items-center space-x-1 max-w-sm">
                           <AlertCircle className="h-3.5 w-3.5" />
-                          <span>공항 내 대기 시간 (대기 시간 약 2시간) - {segment.arrivalAirport.city} ({segment.arrivalAirport.code}) 경유</span>
+                          <span>
+                            {isKo 
+                              ? `공항 내 대기 시간 (대기 시간 약 2시간) - ${segment.arrivalAirport.city} (${segment.arrivalAirport.code}) 경유`
+                              : `Layover at ${segment.arrivalAirport.city} (${segment.arrivalAirport.code}) · Approx. 2h`
+                            }
+                          </span>
                         </div>
                       )}
                     </div>
@@ -558,7 +585,12 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                 <div className="pt-6 border-t border-gray-200">
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center">
                     <Plane className="h-4 w-4 mr-1.5 text-blue-600 -rotate-135 transform" />
-                    <span>오는 날 여정 상세 정보 ({firstInbound.departureAirport.city} ➔ {lastInbound.arrivalAirport.city})</span>
+                    <span>
+                      {isKo 
+                        ? `오는 날 여정 상세 정보 (${firstInbound.departureAirport.city} ➔ ${lastInbound.arrivalAirport.city})`
+                        : `Return Flight Details (${firstInbound.departureAirport.city} ➔ ${lastInbound.arrivalAirport.city})`
+                      }
+                    </span>
                   </h4>
                   
                   <div className="relative border-l-2 border-dashed border-gray-300 ml-4 pl-6 space-y-6">
@@ -588,7 +620,12 @@ const FlightCard: React.FC<FlightCardProps> = ({ flight, onBook, tag, searchQuer
                         {index < inboundSegments.length - 1 && (
                           <div className="my-3 p-2 bg-red-50 text-red-700 border border-red-100 rounded-lg text-[10px] font-bold flex items-center space-x-1 max-w-sm">
                             <AlertCircle className="h-3.5 w-3.5" />
-                            <span>공항 내 대기 시간 (대기 시간 약 2시간) - {segment.arrivalAirport.city} ({segment.arrivalAirport.code}) 경유</span>
+                            <span>
+                              {isKo 
+                                ? `공항 내 대기 시간 (대기 시간 약 2시간) - ${segment.arrivalAirport.city} (${segment.arrivalAirport.code}) 경유`
+                                : `Layover at ${segment.arrivalAirport.city} (${segment.arrivalAirport.code}) · Approx. 2h`
+                              }
+                            </span>
                           </div>
                         )}
                       </div>

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Plane, Hotel, Briefcase, Globe } from 'lucide-react';
+import { Plane, Hotel, Briefcase, Globe, Car, Tag } from 'lucide-react';
 import { LANGUAGES } from './LanguageSelectionModal';
 import { getTranslation } from '../utils/translations';
 import { CURRENCY_DATA } from '../types';
 
 interface HeaderProps {
-  activeTab: 'flights' | 'hotels' | 'bookings' | 'packages';
-  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings' | 'packages') => void;
+  activeTab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'deals';
+  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'deals') => void;
   bookingCount: number;
   currency: string;
   setCurrency: (currency: string) => void;
@@ -41,6 +41,8 @@ export default function Header({
     logout: getTranslation('logout', selectedLanguageCode),
     login: getTranslation('login', selectedLanguageCode),
     signup: getTranslation('signup', selectedLanguageCode),
+    cars: selectedLanguageCode === 'ko' ? '렌터카' : 'Car Rental',
+    deals: selectedLanguageCode === 'ko' ? '할인 혜택' : 'Deals & Coupons',
   };
 
   const currencySymbol = CURRENCY_DATA[currency]?.symbol || '$';
@@ -88,6 +90,32 @@ export default function Header({
               >
                 <Hotel className="h-4 w-4" />
                 <span>{t.hotels}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('cars')}
+                className={`flex items-center space-x-2 h-14 text-sm font-medium transition-all ${
+                  activeTab === 'cars'
+                    ? 'text-blue-600 border-b-2 border-blue-600 pt-0.5'
+                    : 'text-slate-600 hover:text-blue-600 pt-0.5'
+                }`}
+                id="nav-cars"
+              >
+                <Car className="h-4 w-4" />
+                <span>{t.cars}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('deals')}
+                className={`flex items-center space-x-2 h-14 text-sm font-medium transition-all ${
+                  activeTab === 'deals'
+                    ? 'text-blue-600 border-b-2 border-blue-600 pt-0.5'
+                    : 'text-slate-600 hover:text-blue-600 pt-0.5'
+                }`}
+                id="nav-deals"
+              >
+                <Tag className="h-4 w-4" />
+                <span>{t.deals}</span>
               </button>
 
               <button

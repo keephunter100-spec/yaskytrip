@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plane, Hotel, Calendar, Users, ArrowLeftRight, Search, MapPin, ChevronDown, Minus, Plus, Check, DoorOpen } from 'lucide-react';
+import { Plane, Hotel, Calendar, Users, ArrowLeftRight, Search, MapPin, ChevronDown, Minus, Plus, Check, DoorOpen, Car, Tag } from 'lucide-react';
 import { CITIES } from '../data';
 import { SearchQuery } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -109,7 +109,7 @@ const formatKoreanDate = (dateStr: string, selectedLanguageCode: string = 'ko') 
 };
 
 export default function SearchForm({ onSearch, initialQuery, language = 'KO', selectedLanguageCode = 'ko' }: SearchFormProps) {
-  const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages'>(initialQuery?.type || 'flights');
+  const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages' | 'cars' | 'deals'>(initialQuery?.type || 'flights');
   const [tripType, setTripType] = useState<'round-trip' | 'one-way'>(initialQuery?.tripType || 'round-trip');
   const [cabinClass, setCabinClass] = useState<'economy' | 'premium' | 'business' | 'first'>(initialQuery?.cabinClass || 'economy');
 
@@ -259,6 +259,10 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
     flights: getTranslation('flights', selectedLanguageCode),
     hotels: getTranslation('hotels', selectedLanguageCode),
     packages: getTranslation('packages', selectedLanguageCode),
+    cars: selectedLanguageCode === 'ko' ? '렌터카' : 'Car Rental',
+    deals: selectedLanguageCode === 'ko' ? '할인 혜택' : 'Deals & Coupons',
+    searchCars: selectedLanguageCode === 'ko' ? '렌터카 검색하기' : 'Search Car Rentals',
+    searchDeals: selectedLanguageCode === 'ko' ? '할인 혜택 조회하기' : 'Search Deals & Coupons',
     roundTrip: getTranslation('roundTrip', selectedLanguageCode),
     oneWay: getTranslation('oneWay', selectedLanguageCode),
     departure: getTranslation('departure', selectedLanguageCode),
@@ -346,6 +350,32 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
             </span>
             <span>{t.packages}</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveType('cars')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              activeType === 'cars'
+                ? 'bg-white text-blue-900 shadow-lg'
+                : 'text-white/80 hover:text-white hover:bg-white/5'
+            }`}
+            id="type-select-cars"
+          >
+            <Car className="h-4 w-4" />
+            <span>{t.cars}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveType('deals')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+              activeType === 'deals'
+                ? 'bg-white text-blue-900 shadow-lg'
+                : 'text-white/80 hover:text-white hover:bg-white/5'
+            }`}
+            id="type-select-deals"
+          >
+            <Tag className="h-4 w-4" />
+            <span>{t.deals}</span>
+          </button>
         </div>
 
         {/* Flight specific class & way filters */}
@@ -408,12 +438,44 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
 
       {/* Main Form Fields */}
       <form onSubmit={handleSearchSubmit} className="space-y-4 relative z-10" id="search-form">
-        
-        {/* Row 1: 2x2 Core layout mimicking the premium design in user screenshot */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-          
-          {/* Row 1, Column 1 (Left top): 출발지 / 도착지 or 숙박할 도시 */}
-          {(activeType === 'flights' || activeType === 'packages') ? (
+         
+         {activeType === 'deals' ? (
+           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+             {/* Promo search card - spans 9 cols */}
+             <div className="md:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center p-4 hover:bg-slate-50/70 h-[76px] transition-all relative group">
+               <div className="text-indigo-600 shrink-0 mr-3">
+                 <Tag className="h-6 w-6" />
+               </div>
+               <div className="flex-1 text-left min-w-0">
+                 <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                   {selectedLanguageCode === 'ko' ? '카드사 또는 검색어 입력 (실시간 검색)' : 'Search credit cards, coupons or keyword...'}
+                 </span>
+                 <input
+                   type="text"
+                   value={toCity === 'Tokyo' ? '' : toCity}
+                   onChange={(e) => setToCity(e.target.value)}
+                   className="w-full bg-transparent border-0 p-0 text-sm sm:text-base font-extrabold text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden mt-1"
+                   placeholder={selectedLanguageCode === 'ko' ? '예: KB국민카드, 신한카드, 호캉스, 렌터카...' : 'e.g. KB card, Shinhan, hotel, car...'}
+                 />
+               </div>
+             </div>
+             {/* Search button - spans 3 cols */}
+             <div className="md:col-span-3">
+               <button
+                 type="submit"
+                 className="h-[76px] w-full bg-[#1E60FF] hover:bg-[#004EE0] text-white font-black text-sm sm:text-base rounded-2xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center space-x-2 cursor-pointer"
+                 id="search-submit-btn-deals"
+               >
+                 <Search className="h-5 w-5 stroke-[2.5]" />
+                 <span>{t.searchDeals}</span>
+               </button>
+             </div>
+           </div>
+         ) : (
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+             
+             {/* Row 1, Column 1 (Left top): 출발지 / 도착지 or 숙박할 도시 */}
+             {(activeType === 'flights' || activeType === 'packages') ? (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm grid grid-cols-2 divide-x divide-slate-150 overflow-visible h-[76px] relative">
               {/* Departure */}
               <div 
@@ -565,7 +627,7 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
               </div>
             </div>
           ) : (
-            /* Hotel Search Left Card (Accommodation City) */
+            /* Hotel & Car Search Left Card (Accommodation City / Rental Place) */
             <div 
               ref={toRef}
               onClick={() => {
@@ -575,10 +637,19 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
               className="bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center p-4 hover:bg-slate-50/70 cursor-pointer h-[76px] transition-all relative w-full group"
             >
               <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0 mr-3">
-                <Hotel className="h-6 w-6" />
+                {activeType === 'cars' ? (
+                  <Car className="h-6 w-6 text-emerald-600 animate-pulse" />
+                ) : (
+                  <Hotel className="h-6 w-6" />
+                )}
               </div>
               <div className="flex-1 text-left min-w-0">
-                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">{t.destinationCity}</span>
+                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                  {activeType === 'cars'
+                    ? (selectedLanguageCode === 'ko' ? '차량 대여 인수 도시' : 'Rental Pickup City')
+                    : t.destinationCity
+                  }
+                </span>
                 {isToFocused ? (
                   <input
                     type="text"
@@ -590,7 +661,10 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
                       }
                     }}
                     className="w-full bg-transparent border-0 p-0 text-sm font-extrabold text-slate-800 placeholder-slate-400 focus:ring-0 focus:outline-hidden"
-                    placeholder={t.destinationCity}
+                    placeholder={activeType === 'cars'
+                      ? (selectedLanguageCode === 'ko' ? '도시 입력...' : 'Enter City...')
+                      : t.destinationCity
+                    }
                     autoFocus
                   />
                 ) : (
@@ -698,14 +772,21 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
               className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group rounded-l-2xl"
             >
               <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
-                <Users className="h-6 w-6" />
+                {activeType === 'cars' ? <Car className="h-6 w-6 text-slate-500" /> : <Users className="h-6 w-6" />}
               </div>
               <div className="flex-1 text-left min-w-0">
-                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">{t.passengers}</span>
+                <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+                  {activeType === 'cars' 
+                    ? (selectedLanguageCode === 'ko' ? '대여 탑승 인원' : 'Rental Occupants') 
+                    : t.passengers
+                  }
+                </span>
                 <span className="text-sm sm:text-base font-extrabold text-slate-800 block truncate mt-1">
-                  {(activeType === 'flights' || activeType === 'packages') 
-                    ? (language === 'EN' ? `${totalPassengers} Traveler${totalPassengers > 1 ? 's' : ''}` : `${totalPassengers}명`) 
-                    : (language === 'EN' ? `${hotelGuests} Guest${hotelGuests > 1 ? 's' : ''}` : `${hotelGuests}명`)
+                  {activeType === 'cars'
+                    ? (language === 'EN' ? `${totalPassengers} passenger${totalPassengers > 1 ? 's' : ''}` : `${totalPassengers}명`)
+                    : (activeType === 'flights' || activeType === 'packages') 
+                      ? (language === 'EN' ? `${totalPassengers} Traveler${totalPassengers > 1 ? 's' : ''}` : `${totalPassengers}명`) 
+                      : (language === 'EN' ? `${hotelGuests} Guest${hotelGuests > 1 ? 's' : ''}` : `${hotelGuests}명`)
                   }
                 </span>
               </div>
@@ -837,25 +918,30 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
                 e.stopPropagation();
                 if (activeType === 'flights') {
                   setShowClassDropdown(!showClassDropdown);
-                } else {
+                } else if (activeType === 'hotels' || activeType === 'packages') {
                   setShowRoomDropdown(!showRoomDropdown);
                 }
               }}
               className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group rounded-r-2xl"
             >
               <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
-                <DoorOpen className="h-6 w-6" />
+                {activeType === 'cars' ? <Car className="h-6 w-6 text-slate-500" /> : <DoorOpen className="h-6 w-6" />}
               </div>
               <div className="flex-1 text-left min-w-0" ref={classRef}>
                 <span className="block text-[11px] text-slate-400 font-bold uppercase tracking-wider leading-none">
-                  {activeType === 'flights' ? (isEn ? 'Cabin Class' : '좌석 등급') : t.rooms}
+                  {activeType === 'cars'
+                    ? (isEn ? 'Car Class' : '선호 차량 등급')
+                    : activeType === 'flights' ? (isEn ? 'Cabin Class' : '좌석 등급') : t.rooms
+                  }
                 </span>
                 <span className="text-sm sm:text-base font-extrabold text-slate-800 block truncate mt-1">
-                  {activeType === 'flights' 
-                    ? getCabinClassLabel(cabinClass)
-                    : activeType === 'packages'
-                      ? (isEn ? `${hotelRooms} Room${hotelRooms > 1 ? 's' : ''} / ${hotelGuests} Guest${hotelGuests > 1 ? 's' : ''}` : `${hotelRooms} 객실 / 투숙 ${hotelGuests}명`)
-                      : (isEn ? `${hotelRooms} Room${hotelRooms > 1 ? 's' : ''}` : `${hotelRooms} 객실`)
+                  {activeType === 'cars'
+                    ? (selectedLanguageCode === 'ko' ? '전체 등급 (컴팩트~SUV)' : 'All Classes (Compact to SUV)')
+                    : activeType === 'flights' 
+                      ? getCabinClassLabel(cabinClass)
+                      : activeType === 'packages'
+                        ? (isEn ? `${hotelRooms} Room${hotelRooms > 1 ? 's' : ''} / ${hotelGuests} Guest${hotelGuests > 1 ? 's' : ''}` : `${hotelRooms} 객실 / 투숙 ${hotelGuests}명`)
+                        : (isEn ? `${hotelRooms} Room${hotelRooms > 1 ? 's' : ''}` : `${hotelRooms} 객실`)
                   }
                 </span>
               </div>
@@ -970,13 +1056,16 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
                   ? t.searchFlights 
                   : activeType === 'packages'
                     ? t.searchPackages
-                    : t.searchHotels
+                    : activeType === 'cars'
+                      ? t.searchCars
+                      : t.searchHotels
                 }
               </span>
             </button>
           </div>
 
         </div>
+         )}
 
         {/* Dynamic warning alert block */}
         {fromCity === toCity && (activeType === 'flights' || activeType === 'packages') && (

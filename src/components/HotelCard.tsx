@@ -1,18 +1,32 @@
 import React, { useState } from 'react';
 import { Hotel, SearchQuery, formatPrice } from '../types';
-import { Star, MapPin, Check, Wifi, Award, ChevronDown, ChevronUp, User, ThumbsUp } from 'lucide-react';
+import { Star, MapPin, Check, Wifi, Award, ChevronDown, ChevronUp, User, ThumbsUp, Heart, Share2, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getHotelImageCategories } from '../utils/hotelImages';
+import HotelGalleryModal from './HotelGalleryModal';
 
 interface HotelCardProps {
   hotel: Hotel;
   onBook: (hotel: Hotel, roomName: string, price: number) => void;
   searchQuery?: SearchQuery;
   currency?: string;
+  selectedLanguageCode?: string;
 }
 
-const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, currency = 'USD' }) => {
+const HotelCard: React.FC<HotelCardProps> = ({ 
+  hotel, 
+  onBook, 
+  searchQuery, 
+  currency = 'USD',
+  selectedLanguageCode = 'ko'
+}) => {
   const [expanded, setExpanded] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(hotel.roomTypes[0]?.name || '');
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const isKo = selectedLanguageCode === 'ko';
+  const categories = getHotelImageCategories(hotel);
 
   const getRealBookingUrl = () => {
     const location = hotel.city;
@@ -30,6 +44,9 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
   };
 
   const getAmenityLabel = (am: string) => {
+    if (!isKo) {
+      return am; // It is already in English (e.g. "Free WiFi", "Infinity Pool", etc.)
+    }
     switch (am) {
       case 'Free WiFi': return '무료 와이파이';
       case 'Infinity Pool': return '인피니티 풀';
@@ -46,11 +63,11 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
   };
 
   const getReviewWord = (score: number) => {
-    if (score >= 9.5) return '최고 수준';
-    if (score >= 9.0) return '매우 훌륭함';
-    if (score >= 8.5) return '훌륭함';
-    if (score >= 8.0) return '좋음';
-    return '만족스러움';
+    if (score >= 9.5) return isKo ? '최고 수준' : 'Exceptional';
+    if (score >= 9.0) return isKo ? '매우 훌륭함' : 'Superb';
+    if (score >= 8.5) return isKo ? '훌륭함' : 'Fabulous';
+    if (score >= 8.0) return isKo ? '좋음' : 'Very Good';
+    return isKo ? '만족스러움' : 'Good';
   };
 
   const currentRoomPrice = hotel.roomTypes.find(r => r.name === selectedRoom)?.price || hotel.pricePerNight;
@@ -64,20 +81,113 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
     >
       {/* Top Section: Image and Info Details */}
       <div className="flex flex-col md:flex-row w-full">
-        {/* Hotel Image Section */}
-        <div className="w-full md:w-72 h-48 md:h-auto relative overflow-hidden shrink-0">
-          <img 
-            src={hotel.imageUrl} 
-            alt={hotel.name} 
-            className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-            referrerPolicy="no-referrer"
-          />
+        {/* Hotel Image Section with Slider and Gallery trigger */}
+        <div className="w-full md:w-72 h-56 md:h-auto relative overflow-hidden shrink-0 group/slider select-none">
+          {/* Main Slide Image */}
+          <div 
+            onClick={() => setIsGalleryOpen(true)}
+            className="w-full h-full cursor-pointer relative overflow-hidden bg-slate-100 min-h-[220px]"
+          >
+            <AnimatePresence mode="wait">
+              <motion.img 
+                key={activeSlideIndex}
+                src={categories[activeSlideIndex]?.imageUrl || hotel.imageUrl} 
+                alt={`${hotel.name} - ${categories[activeSlideIndex]?.nameKo}`} 
+                initial={{ opacity: 0, scale: 1.02 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="w-full h-full object-cover absolute inset-0"
+                referrerPolicy="no-referrer"
+              />
+            </AnimatePresence>
+            
+            {/* Subtle Hover Overlay for zooming details */}
+            <div className="absolute inset-0 bg-black/0 group-hover/slider:bg-black/10 transition-colors duration-200 flex items-center justify-center">
+              <span className="bg-black/60 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-full opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 uppercase tracking-wider flex items-center space-x-1 shadow-sm">
+                <Maximize2 className="h-3 w-3" />
+                <span>{isKo ? '상세 사진 보기' : 'View Gallery'}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Top-Left Wishlist and Share overlays (Exactly matching screenshot 1!) */}
+          <div className="absolute top-3 left-3 flex items-center space-x-1.5 z-10">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsWishlisted(!isWishlisted);
+              }}
+              className="h-8 w-8 bg-white/95 hover:bg-white text-slate-700 hover:scale-105 active:scale-95 rounded-lg shadow-sm flex items-center justify-center transition-all cursor-pointer"
+            >
+              <Heart className={`h-4 w-4 transition-colors ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-slate-600'}`} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (navigator.share) {
+                  navigator.share({ title: hotel.name, text: hotel.address, url: window.location.href }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(hotel.name);
+                  // Gentle visual feedback, or standard browser alert safely
+                }
+              }}
+              className="h-8 w-8 bg-white/95 hover:bg-white text-slate-700 hover:scale-105 active:scale-95 rounded-lg shadow-sm flex items-center justify-center transition-all cursor-pointer"
+            >
+              <Share2 className="h-4 w-4 text-slate-600" />
+            </button>
+          </div>
+
+          {/* Luxury Badge */}
           {hotel.rating === 5 && (
-            <span className="absolute top-3 left-3 bg-gray-900/90 text-yellow-400 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center space-x-1 uppercase tracking-wider backdrop-blur-xs">
-              <Award className="h-3.5 w-3.5" />
-              <span>최고의 럭셔리</span>
+            <span className="absolute top-3 right-3 bg-slate-900/90 text-yellow-400 text-[9px] font-black px-2 py-0.5 rounded-full flex items-center space-x-0.5 uppercase tracking-wider z-10 shadow-xs border border-white/5">
+              <Award className="h-3 w-3" />
+              <span>{isKo ? '최고 럭셔리' : 'Luxury'}</span>
             </span>
           )}
+
+          {/* Slider Prev/Next Navigation arrows (visible on hover) */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSlideIndex((prev) => (prev - 1 + categories.length) % categories.length);
+            }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all cursor-pointer z-10 opacity-0 group-hover/slider:opacity-100 border border-white/10"
+          >
+            <ChevronLeft className="h-4.5 w-4.5" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSlideIndex((prev) => (prev + 1) % categories.length);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all cursor-pointer z-10 opacity-0 group-hover/slider:opacity-100 border border-white/10"
+          >
+            <ChevronRight className="h-4.5 w-4.5" />
+          </button>
+
+          {/* Slider dots indicators at the bottom (Exactly matching screenshot 1!) */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center space-x-1 z-10 bg-black/25 px-2 py-0.5 rounded-full backdrop-blur-xs">
+            {categories.slice(0, 5).map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveSlideIndex(idx);
+                }}
+                className={`h-1 rounded-full transition-all cursor-pointer ${
+                  activeSlideIndex === idx 
+                    ? 'w-2.5 bg-white' 
+                    : 'w-1 bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Main Details Section */}
@@ -113,7 +223,7 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
               ))}
               {hotel.amenities.length > 4 && (
                 <span className="text-[10px] text-gray-400 font-semibold px-1.5 py-1">
-                  +{hotel.amenities.length - 4}개 편의시설 더보기
+                  {isKo ? `+${hotel.amenities.length - 4}개 편의시설 더보기` : `+${hotel.amenities.length - 4} more amenities`}
                 </span>
               )}
             </div>
@@ -129,18 +239,24 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
               </div>
               <div>
                 <span className="block text-xs font-black text-slate-800 leading-none">{getReviewWord(hotel.reviewScore)}</span>
-                <span className="block text-[10px] text-slate-400 font-bold mt-0.5">최근 후기 {hotel.reviewCount}개</span>
+                <span className="block text-[10px] text-slate-400 font-bold mt-0.5">
+                  {isKo ? `최근 후기 ${hotel.reviewCount}개` : `${hotel.reviewCount} recent reviews`}
+                </span>
               </div>
             </div>
 
             {/* Price details and Action buttons */}
             <div className="text-right flex justify-between sm:flex-col items-center sm:items-end gap-2">
               <div>
-                <span className="text-[10px] text-gray-400 block font-medium">객실 최저가 / 1박 기준</span>
+                <span className="text-[10px] text-gray-400 block font-medium">
+                  {isKo ? '객실 최저가 / 1박 기준' : 'Best Room Rate / Night'}
+                </span>
                 <div className="text-2xl font-black text-gray-900 font-sans">
                   {formatPrice(currentRoomPrice, currency)}
                 </div>
-                <span className="text-[9px] text-gray-400 font-semibold block">소계: 세금 & 봉사료 별도</span>
+                <span className="text-[9px] text-gray-400 font-semibold block">
+                  {isKo ? '소계: 세금 & 봉사료 별도' : 'Excl. taxes & service fees'}
+                </span>
               </div>
 
               <div className="flex items-center space-x-2 shrink-0">
@@ -149,7 +265,10 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
                   onClick={() => setExpanded(!expanded)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60 font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
                 >
-                  {expanded ? '상세 숨기기' : '객실 및 후기 선택'}
+                  {isKo 
+                    ? (expanded ? '상세 숨기기' : '객실 및 후기 선택') 
+                    : (expanded ? 'Hide Details' : 'Rooms & Reviews')
+                  }
                 </button>
 
                 <button
@@ -158,7 +277,7 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
                   id={`book-hotel-btn-${hotel.id}`}
                 >
-                  일정 선택 및 예약
+                  {isKo ? '일정 선택 및 예약' : 'Select & Book'}
                 </button>
               </div>
             </div>
@@ -181,7 +300,9 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
               
               {/* Rooms Selector Column */}
               <div className="lg:col-span-7 space-y-4">
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">원하시는 객실을 골라주세요</h4>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  {isKo ? '원하시는 객실을 골라주세요' : 'Select a Room Option'}
+                </h4>
                 <div className="space-y-2">
                   {hotel.roomTypes.map((room) => (
                     <div 
@@ -205,7 +326,9 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
 
               {/* Guest Reviews Column */}
               <div className="lg:col-span-5 space-y-4">
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">실제 고객 이용 후기</h4>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  {isKo ? '실제 고객 이용 후기' : 'Guest Reviews & Ratings'}
+                </h4>
                 <div className="space-y-3">
                   {hotel.reviews.map((rev, idx) => (
                     <div key={idx} className="bg-white p-3 rounded border border-slate-200">
@@ -228,7 +351,11 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
                   <div className="p-2.5 bg-emerald-50 border border-emerald-100 rounded flex items-center space-x-2">
                     <ThumbsUp className="h-4 w-4 text-emerald-600 shrink-0" />
                     <span className="text-[9px] text-emerald-800 leading-normal">
-                      최근 투숙객 중 <b>94%</b>가 이 호텔의 위생 상태와 조식을 매우 좋음으로 평가했습니다.
+                      {isKo ? (
+                        <>최근 투숙객 중 <b>94%</b>가 이 호텔의 위생 상태와 조식을 매우 좋음으로 평가했습니다.</>
+                      ) : (
+                        <><b>94%</b> of recent guests rated this hotel's cleanliness and breakfast as outstanding.</>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -238,6 +365,16 @@ const HotelCard: React.FC<HotelCardProps> = ({ hotel, onBook, searchQuery, curre
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Immersive Photo Gallery Modal */}
+      <HotelGalleryModal 
+        isOpen={isGalleryOpen}
+        hotel={hotel}
+        onClose={() => setIsGalleryOpen(false)}
+        onBook={() => onBook(hotel, selectedRoom, currentRoomPrice)}
+        currency={currency}
+        selectedLanguageCode={selectedLanguageCode}
+      />
     </div>
   );
 };

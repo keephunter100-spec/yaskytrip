@@ -1,5 +1,5 @@
 import React from 'react';
-import { SlidersHorizontal, ShieldCheck, Star, RefreshCw } from 'lucide-react';
+import { SlidersHorizontal, Star, RefreshCw } from 'lucide-react';
 import { FilterOptions, formatPrice } from '../types';
 import { getTranslation } from '../utils/translations';
 
@@ -315,16 +315,6 @@ export default function Filters({
         </div>
       )}
 
-      {/* Sustainable badge info */}
-      <div className="bg-blue-50/50 border border-blue-100 rounded p-2.5 flex space-x-2">
-        <ShieldCheck className="h-3.5 w-3.5 text-blue-600 shrink-0 mt-0.5" />
-        <div className="text-[10px] text-blue-800 leading-relaxed font-semibold">
-          <span className="font-bold block text-blue-900">
-            {getTranslation('co2Labeling', selectedLanguageCode)}
-          </span>
-          {getTranslation('co2LabelingDesc', selectedLanguageCode)}
-        </div>
-      </div>
     </div>
   );
 }

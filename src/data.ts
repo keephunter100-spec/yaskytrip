@@ -1,4 +1,4 @@
-import { Airport, City, Airline, Flight, FlightSegment, Hotel } from './types';
+import { Airport, City, Airline, Flight, FlightSegment, Hotel, CarRental, DiscountDeal } from './types';
 
 export const AIRLINES: Airline[] = [
   { code: 'KE', name: 'Korean Air', logo: '✈️' },
@@ -469,3 +469,130 @@ export function generateHotels(
   // Sort by rating (high to low) by default
   return hotels.sort((a, b) => b.reviewScore - a.reviewScore);
 }
+
+export function generateCars(cityName: string): CarRental[] {
+  const seed = `CAR-${cityName.toUpperCase()}`;
+  const random = () => {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const x = Math.sin(hash++) * 10000;
+    return x - Math.floor(x);
+  };
+
+  const providers = ['Hertz', 'Avis', 'Enterprise', 'National', 'Sixt', 'Budget', 'Lotte Rent-a-car'];
+  const carModels = [
+    { name: 'Hyundai Avante', type: 'compact', seats: 5, price: 45, fuel: 'gasoline', transmission: 'auto', img: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Kia K5', type: 'sedan', seats: 5, price: 60, fuel: 'hybrid', transmission: 'auto', img: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Genesis G80', type: 'luxury', seats: 5, price: 120, fuel: 'gasoline', transmission: 'auto', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Tesla Model Y', type: 'electric', seats: 5, price: 95, fuel: 'electric', transmission: 'auto', img: 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Hyundai Palisade', type: 'suv', seats: 7, price: 110, fuel: 'diesel', transmission: 'auto', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Ford Mustang Convertible', type: 'luxury', seats: 4, price: 150, fuel: 'gasoline', transmission: 'auto', img: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=400&q=80' },
+    { name: 'Kia Carnival', type: 'suv', seats: 9, price: 130, fuel: 'diesel', transmission: 'auto', img: 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=400&q=80' },
+  ] as const;
+
+  const cars: CarRental[] = [];
+  carModels.forEach((model, i) => {
+    const provider = providers[(i + cityName.length) % providers.length];
+    cars.push({
+      id: `CAR-${cityName.toUpperCase()}-${i}`,
+      provider,
+      type: model.type,
+      name: model.name,
+      pricePerDay: Math.floor(model.price * (0.8 + random() * 0.4)),
+      currency: 'USD',
+      transmission: model.transmission,
+      fuelType: model.fuel,
+      seats: model.seats,
+      imageUrl: model.img,
+      rating: Number((8.0 + random() * 1.8).toFixed(1)),
+      reviewCount: Math.floor(120 + random() * 800),
+      features: [
+        '자차보험 가입가능 (Collision Damage Waiver)',
+        '무제한 주행거리 (Unlimited Mileage)',
+        'GPS 내비게이션 포함',
+        '블루투스 오디오 및 USB 단자',
+        '금연 차량 (Non-smoking Car)',
+        '무료 취소 가능 (Free Cancellation)'
+      ].slice(0, 3 + Math.floor(random() * 4)),
+    });
+  });
+
+  return cars;
+}
+
+export const DISCOUNT_DEALS: DiscountDeal[] = [
+  {
+    id: 'DEAL-01',
+    title: 'KB국민카드 회원 단독 10% 추가 할인',
+    description: 'KAYAK 제휴 기념으로 KB국민카드로 결제 시 전 세계 호텔 및 항공 10% 즉시 할인 혜택을 제공합니다.',
+    category: 'card',
+    discountAmount: '10% 즉시 할인',
+    promoCode: 'KAYAKKB10',
+    expiresAt: '2026-12-31',
+    sponsor: 'KB국민카드',
+    imageUrl: 'https://images.unsplash.com/photo-1589758438368-0ad531db3366?auto=format&fit=crop&w=400&q=80',
+    terms: 'KB국민 개인 신용 및 체크카드 결제 시 적용 가능하며 타 할인쿠폰과 중복 적용은 불가합니다.'
+  },
+  {
+    id: 'DEAL-02',
+    title: '신한카드 마이신한포인트 최대 5만 포인트 적립',
+    description: '야스카이트립에서 신한카드로 해외 항공권 또는 결합 패키지 구매 시 결제금액별 포인트 리워드를 드립니다.',
+    category: 'card',
+    discountAmount: '최대 5만P 적립',
+    promoCode: 'SHINHANPOINT',
+    expiresAt: '2026-09-30',
+    sponsor: '신한카드',
+    imageUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=400&q=80',
+    terms: '결제액 100만원 이상 시 5만P, 50만원 이상 시 2만P 적립됩니다. (신한 개인신용카드 전용)'
+  },
+  {
+    id: 'DEAL-03',
+    title: '여름 바캉스 시즌 특별 호텔 할인',
+    description: '도쿄, 뉴욕, 하와이 등 올 여름 인기 오아시스 휴양지의 명품 5성급 호텔들을 전용가로 만나보세요.',
+    category: 'hotel',
+    discountAmount: '최대 35% 할인',
+    promoCode: 'SUMMERVACAY',
+    expiresAt: '2026-08-31',
+    sponsor: '야스카이트립 단독',
+    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80',
+    terms: '여름 성수기 시즌 투숙 상품 한정이며 취소 불가 조건 특가 상품들이 다수 포함되어 있습니다.'
+  },
+  {
+    id: 'DEAL-04',
+    title: '유럽/미주 노선 비즈니스석 얼리버드 프로모션',
+    description: '아시아나, 대한항공, 델타항공의 인기 장거리 비즈니스 스위트 노선을 단독 선발권 얼리버드 가격에 예약하세요.',
+    category: 'flight',
+    discountAmount: '최대 ₩300,000 할인',
+    promoCode: 'BIZEARLY',
+    expiresAt: '2026-10-31',
+    sponsor: '대한항공/아시아나',
+    imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=400&q=80',
+    terms: '한국 출발 유럽 및 미주 왕복 노선 구매 시 한정이며, 선착순 발권 마감될 수 있습니다.'
+  },
+  {
+    id: 'DEAL-05',
+    title: 'Hertz 렌터카 선예약 미국/유럽 1일 무료 이벤트',
+    description: '미국 전 지역 또는 유럽에서 Hertz 렌터카 5일 이상 예약 시 1일 대여료를 완벽히 무료 공제해 드립니다.',
+    category: 'car',
+    discountAmount: '1일 무료 대여',
+    promoCode: 'HERTZ1FREE',
+    expiresAt: '2026-11-30',
+    sponsor: 'Hertz',
+    imageUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=400&q=80',
+    terms: '컴팩트 이상 차량 등급 선택 및 현장 결제 또는 선결제 모두 적용 가능합니다.'
+  },
+  {
+    id: 'DEAL-06',
+    title: '신규 가입 감사 웰컴 쿠폰 팩',
+    description: '야스카이트립 서비스 론칭을 축하하며 첫 예약을 진행하시는 모든 회원 여러분께 웰컴 쿠폰을 드립니다.',
+    category: 'seasonal',
+    discountAmount: '₩15,000 즉시 할인',
+    promoCode: 'WELCOMEWINGS',
+    expiresAt: '2026-12-31',
+    sponsor: '웰컴 특별 혜택',
+    imageUrl: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=400&q=80',
+    terms: '항공, 호텔 및 결합 패키지 첫 1회 예약 시 적용되며 최소 결제금액은 ₩100,000 이상입니다.'
+  }
+];
