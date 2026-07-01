@@ -183,9 +183,7 @@ const parseAISemanticQuery = (text: string): ParsedQuery => {
 
 export default function App() {
   // Lock / Maintenance Screen State
-  const [isLocked, setIsLocked] = useState(() => {
-    return sessionStorage.getItem('yaskytrip_unlocked') !== 'true';
-  });
+  const [isLocked, setIsLocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
 
