@@ -10,7 +10,7 @@ interface SearchFormProps {
   initialQuery?: SearchQuery;
   language?: 'KO' | 'EN';
   selectedLanguageCode?: string;
-  onTabChange?: (tab: 'flights' | 'hotels' | 'packages' | 'cars' | 'deals') => void;
+  onTabChange?: (tab: 'flights' | 'hotels' | 'packages' | 'cars') => void;
 }
 
 // Mapped helper for English to Local City Name Translation
@@ -110,9 +110,9 @@ const formatKoreanDate = (dateStr: string, selectedLanguageCode: string = 'ko') 
 };
 
 export default function SearchForm({ onSearch, initialQuery, language = 'KO', selectedLanguageCode = 'ko', onTabChange }: SearchFormProps) {
-  const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages' | 'cars' | 'deals'>(initialQuery?.type || 'flights');
+  const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages' | 'cars'>(initialQuery?.type || 'flights');
 
-  const handleTypeChange = (type: 'flights' | 'hotels' | 'packages' | 'cars' | 'deals') => {
+  const handleTypeChange = (type: 'flights' | 'hotels' | 'packages' | 'cars') => {
     setActiveType(type);
     if (onTabChange) {
       onTabChange(type);
@@ -371,19 +371,6 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
             <Car className="h-4 w-4 shrink-0" />
             <span>{t.cars}</span>
           </button>
-          <button
-            type="button"
-            onClick={() => handleTypeChange('deals')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
-              activeType === 'deals'
-                ? 'bg-white text-blue-900 shadow-lg'
-                : 'text-white/80 hover:text-white hover:bg-white/5'
-            }`}
-            id="type-select-deals"
-          >
-            <Tag className="h-4 w-4 shrink-0" />
-            <span>{t.deals}</span>
-          </button>
         </div>
 
         {/* Flight specific class & way filters */}
@@ -447,7 +434,7 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
       {/* Main Form Fields */}
       <form onSubmit={handleSearchSubmit} className="space-y-4 relative z-10" id="search-form">
          
-         {activeType === 'deals' ? (
+         {false ? (
            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
              {/* Promo search card - spans 9 cols */}
              <div className="md:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center p-4 hover:bg-slate-50/70 h-[76px] transition-all relative group">

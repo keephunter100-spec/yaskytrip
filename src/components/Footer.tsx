@@ -17,9 +17,12 @@ export default function Footer({ onShowRefundPolicy, selectedLanguageCode = 'ko'
           {/* Logo & Slogan */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2.5 text-white text-xl">
-              <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 text-white p-1 rounded flex items-center justify-center shadow-sm">
-                <Plane className="h-4 w-4 rotate-45 transform" />
-              </span>
+              <img
+                src="/src/assets/images/sharp_favicon_1782905090836.jpg"
+                alt="YASKYTRIP Logo"
+                className="h-8 w-8 rounded-lg object-cover shadow-sm border border-slate-800"
+                referrerPolicy="no-referrer"
+              />
               <span className="logo-custom text-lg tracking-[0.08em] bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 uppercase font-bold select-none">YASKYTRIP</span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">

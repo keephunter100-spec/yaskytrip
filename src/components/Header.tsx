@@ -1,12 +1,12 @@
 import React from 'react';
-import { Plane, Hotel, Briefcase, Globe, Car, Tag } from 'lucide-react';
+import { Plane, Hotel, Briefcase, Globe, Car, Tag, Download } from 'lucide-react';
 import { LANGUAGES } from './LanguageSelectionModal';
 import { getTranslation } from '../utils/translations';
 import { CURRENCY_DATA } from '../types';
 
 interface HeaderProps {
-  activeTab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'deals';
-  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'deals') => void;
+  activeTab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars';
+  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars') => void;
   bookingCount: number;
   currency: string;
   setCurrency: (currency: string) => void;
@@ -17,6 +17,7 @@ interface HeaderProps {
   setLanguage: (language: string) => void;
   selectedLanguageCode: string;
   onOpenLanguageModal: () => void;
+  onOpenAppDownload?: () => void;
 }
 
 export default function Header({ 
@@ -31,7 +32,8 @@ export default function Header({
   language,
   setLanguage,
   selectedLanguageCode,
-  onOpenLanguageModal
+  onOpenLanguageModal,
+  onOpenAppDownload
 }: HeaderProps) {
   // Translations
   const t = {
@@ -58,66 +60,17 @@ export default function Header({
               className="flex items-center space-x-2.5 text-2xl transition-all"
               id="logo-btn"
             >
-              <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 text-white p-1.5 rounded-lg flex items-center justify-center shadow-sm">
-                <Plane className="h-4.5 w-4.5 rotate-45 transform" />
-              </span>
+              <img
+                src="/src/assets/images/sharp_favicon_1782905090836.jpg"
+                alt="YASKYTRIP Logo"
+                className="h-8 w-8 rounded-lg object-cover shadow-sm border border-slate-100"
+                referrerPolicy="no-referrer"
+              />
               <span className="logo-custom text-[21px] tracking-[0.08em] select-none bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 font-bold">YASKYTRIP</span>
             </button>
 
             {/* Navigation Tabs */}
             <nav className="hidden md:flex space-x-6 h-14 items-center" id="nav-tabs">
-              <button
-                onClick={() => setActiveTab('flights')}
-                className={`flex items-center space-x-2 h-14 text-sm font-medium transition-all ${
-                  activeTab === 'flights'
-                    ? 'text-blue-600 border-b-2 border-blue-600 pt-0.5'
-                    : 'text-slate-600 hover:text-blue-600 pt-0.5'
-                }`}
-                id="nav-flights"
-              >
-                <Plane className="h-4 w-4" />
-                <span>{t.flights}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('hotels')}
-                className={`flex items-center space-x-2 h-14 text-sm font-medium transition-all ${
-                  activeTab === 'hotels'
-                    ? 'text-blue-600 border-b-2 border-blue-600 pt-0.5'
-                    : 'text-slate-600 hover:text-blue-600 pt-0.5'
-                }`}
-                id="nav-hotels"
-              >
-                <Hotel className="h-4 w-4" />
-                <span>{t.hotels}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('cars')}
-                className={`flex items-center space-x-2 h-14 text-sm font-medium transition-all ${
-                  activeTab === 'cars'
-                    ? 'text-blue-600 border-b-2 border-blue-600 pt-0.5'
-                    : 'text-slate-600 hover:text-blue-600 pt-0.5'
-                }`}
-                id="nav-cars"
-              >
-                <Car className="h-4 w-4" />
-                <span>{t.cars}</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('deals')}
-                className={`flex items-center space-x-2 h-14 text-sm font-medium transition-all ${
-                  activeTab === 'deals'
-                    ? 'text-blue-600 border-b-2 border-blue-600 pt-0.5'
-                    : 'text-slate-600 hover:text-blue-600 pt-0.5'
-                }`}
-                id="nav-deals"
-              >
-                <Tag className="h-4 w-4" />
-                <span>{t.deals}</span>
-              </button>
-
               <button
                 onClick={() => setActiveTab('bookings')}
                 className={`flex items-center space-x-2 h-14 text-sm font-medium transition-all relative ${
@@ -140,6 +93,17 @@ export default function Header({
 
           {/* Right Side Options */}
           <div className="flex items-center space-x-3">
+            {/* App Download Button */}
+            <button
+              onClick={onOpenAppDownload}
+              className="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-sm hover:opacity-90 active:scale-95 text-xs font-black transition-all cursor-pointer mr-1"
+              id="header-app-download-btn"
+              title={language === 'KO' ? 'YASKYTRIP 공식 앱 다운로드' : 'Download YASKYTRIP Official App'}
+            >
+              <Download className="h-3 w-3 animate-bounce" />
+              <span>{language === 'KO' ? '앱 설치' : 'Install App'}</span>
+            </button>
+
             {/* National Flags Language Switcher (Opens Language Selection Modal) */}
             <div className="flex items-center" id="language-selector">
               <button

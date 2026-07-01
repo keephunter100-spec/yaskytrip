@@ -77,7 +77,7 @@ export interface Hotel {
 }
 
 export interface SearchQuery {
-  type: 'flights' | 'hotels' | 'packages' | 'cars' | 'deals';
+  type: 'flights' | 'hotels' | 'packages' | 'cars';
   tripType: 'round-trip' | 'one-way';
   fromCity: string;
   toCity: string;

@@ -16,9 +16,10 @@ import BookingModal from './components/BookingModal';
 import AuthModal from './components/AuthModal';
 import RefundPolicyModal from './components/RefundPolicyModal';
 import AISearchDrawer from './components/AISearchDrawer';
+import AppDownloadModal from './components/AppDownloadModal';
 import { generateFlights, generateHotels, generateCars, DISCOUNT_DEALS, AIRPORTS, CITIES } from './data';
 import { Flight, Hotel, CarRental, DiscountDeal, SearchQuery, FilterOptions, BookingDetails, formatPrice } from './types';
-import { Plane, Hotel as HotelIcon, Briefcase, Trash2, ShieldCheck, Sparkles, ArrowRight, Compass, Heart, HeartOff, CheckCircle, Car, Tag, Ticket, Gift } from 'lucide-react';
+import { Plane, Hotel as HotelIcon, Briefcase, Trash2, ShieldCheck, Sparkles, ArrowRight, Compass, Heart, HeartOff, CheckCircle, Car, Tag, Ticket, Gift, Download, X, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ParsedQuery {
@@ -200,7 +201,7 @@ export default function App() {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'deals'>('flights');
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings' | 'packages' | 'cars'>('flights');
   const [currency, setCurrency] = useState<string>(() => {
     return localStorage.getItem('yaskytrip_currency') || 'USD';
   });
@@ -209,6 +210,10 @@ export default function App() {
     return localStorage.getItem('yaskytrip_selected_language_code') || 'ko';
   });
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const [isAppDownloadOpen, setIsAppDownloadOpen] = useState(false);
+  const [showAppInstallBanner, setShowAppInstallBanner] = useState(() => {
+    return localStorage.getItem('yaskytrip_hide_app_banner') !== 'true';
+  });
 
   const language: 'KO' | 'EN' = selectedLanguageCode === 'ko' ? 'KO' : 'EN';
 
@@ -449,8 +454,6 @@ export default function App() {
         const maxPrice = carResults.reduce((max, c) => c.pricePerDay > max ? c.pricePerDay : max, 100);
         setFilters(f => ({ ...f, maxPrice, airlines: [] }));
         setActiveTab('cars');
-      } else if (query.type === 'deals') {
-        setActiveTab('deals');
       } else {
         const results = generateHotels(query.toCity, query.hotelGuests, query.hotelRooms);
         setHotels(results);
@@ -672,7 +675,7 @@ export default function App() {
         setActiveTab={(tab) => {
           setActiveTab(tab);
           // Sync search query category if tabs clicked
-          if (tab === 'flights' || tab === 'hotels' || tab === 'packages' || tab === 'cars' || tab === 'deals') {
+          if (tab === 'flights' || tab === 'hotels' || tab === 'packages' || tab === 'cars') {
             setSearchQuery(q => ({ ...q, type: tab }));
           }
         }} 
@@ -686,6 +689,7 @@ export default function App() {
         setLanguage={handleLanguageChange}
         selectedLanguageCode={selectedLanguageCode}
         onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
+        onOpenAppDownload={() => setIsAppDownloadOpen(true)}
       />
 
       {/* Main Container */}
@@ -693,17 +697,39 @@ export default function App() {
         
         {/* Search Engine Area */}
         <section className="space-y-4">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200/50 pb-4">
-            <div className="text-center sm:text-left space-y-1.5">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-center sm:justify-start space-x-2">
-                <Sparkles className="h-5 w-5 text-red-600" />
-                <span>{language === 'KO' ? '실시간 최저가 여행 검색' : 'Real-time Cheapest Travel Search'}</span>
-              </h1>
-              <p className="text-xs text-slate-500 font-medium max-w-xl">
-                {language === 'KO' 
-                  ? 'YASKYTRIP은 전 세계 수많은 항공사와 명품 호텔 데이터를 실시간 분석하여 가장 최적화된 상품을 제안해 드립니다.' 
-                  : 'YASKYTRIP analyzes real-time data from countless airlines and luxury hotels worldwide to suggest the most optimized deals.'}
-              </p>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-200/50 pb-4">
+            {/* App Install Box positioned as the title header */}
+            <div className="relative rounded-2xl p-[1px] bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 shadow-md overflow-hidden shrink-0 w-full max-w-2xl" id="app-install-header-box">
+              <div className="bg-white rounded-[15px] p-4 flex flex-col sm:flex-row items-center gap-4 w-full">
+                <img
+                  src="/src/assets/images/sharp_favicon_1782905090836.jpg"
+                  alt="YASKYTRIP App Logo"
+                  className="h-12 w-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="space-y-1 text-center sm:text-left flex-1">
+                  <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+                    <span className="text-[9px] font-extrabold bg-red-50 text-red-500 px-1.5 py-0.5 rounded border border-red-100 uppercase tracking-wider flex items-center">
+                      <Sparkles className="h-2.5 w-2.5 mr-0.5" /> App Launch
+                    </span>
+                    <span className="text-[10px] text-blue-600 font-bold">{language === 'KO' ? '★ YASKYTRIP 공식 앱 출시' : '★ YASKYTRIP Official App'}</span>
+                  </div>
+                  <h3 className="text-base font-black text-slate-900">{language === 'KO' ? 'YASKYTRIP 공식 어플리케이션 출시!' : 'YASKYTRIP Official App is now live!'}</h3>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-lg">
+                    {language === 'KO' 
+                      ? '실시간 초특가 푸시 알림과 가볍고 빠른 스마트 예약을 앱으로 더 안전하게 경험해 보세요.' 
+                      : 'Experience instant discount push alerts and lightning fast travel booking securely on your phone.'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsAppDownloadOpen(true)}
+                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-black px-4.5 py-2.5 rounded-xl shadow transition-all inline-flex items-center space-x-1.5 cursor-pointer active:scale-95 shrink-0 self-center sm:self-center"
+                  id="header-install-btn"
+                >
+                  <Download className="h-3 w-3 animate-bounce" />
+                  <span>{language === 'KO' ? '1초만에 앱 설치' : 'Install App'}</span>
+                </button>
+              </div>
             </div>
 
             {/* AI Smart Search Input Box */}
@@ -717,7 +743,7 @@ export default function App() {
                   <input 
                     type="text" 
                     readOnly
-                    placeholder={language === 'KO' ? 'AI에게 물어보세요...' : 'Ask AI...'} 
+                    placeholder={language === 'KO' ? 'AI에게 여행 일정 및 맛집 물어보세요...' : 'Ask AI about travel plans & hot spots...'} 
                     className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none font-semibold cursor-pointer"
                   />
                   <button 
@@ -738,19 +764,19 @@ export default function App() {
                   onClick={() => setIsAiDrawerOpen(true)}
                   className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
                 >
-                  {language === 'KO' ? '오사카 항공편 ✈️' : 'Osaka flights ✈️'}
+                  {language === 'KO' ? '도쿄 3박4일 일정 ✈️' : 'Tokyo 3N4D itinerary ✈️'}
                 </button>
                 <button 
                   onClick={() => setIsAiDrawerOpen(true)}
                   className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
                 >
-                  {language === 'KO' ? '도쿄 호텔 🏨' : 'Tokyo hotels 🏨'}
+                  {language === 'KO' ? '제주 감성 숙소 🏨' : 'Jeju emotional stays 🏨'}
                 </button>
                 <button 
                   onClick={() => setIsAiDrawerOpen(true)}
                   className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
                 >
-                  {language === 'KO' ? '파리 패키지 📦' : 'Paris packages 📦'}
+                  {language === 'KO' ? '오사카 맛집 탐방 🍜' : 'Osaka food tour 🍜'}
                 </button>
               </div>
             </div>
@@ -1173,27 +1199,7 @@ export default function App() {
                       )
                     )}
 
-                    {/* DISCOUNT DEALS */}
-                    {searchQuery.type === 'deals' && (
-                      <div className="w-full space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          {DISCOUNT_DEALS.filter(deal => {
-                            const query = searchQuery.toCity.toLowerCase().trim();
-                            if (!query || query === 'tokyo' || query === 'seoul') return true;
-                            return deal.title.toLowerCase().includes(query) || 
-                                   deal.description.toLowerCase().includes(query) ||
-                                   deal.sponsor.toLowerCase().includes(query) ||
-                                   deal.terms.toLowerCase().includes(query);
-                          }).map((deal) => (
-                            <DealCard 
-                              key={deal.id}
-                              deal={deal}
-                              selectedLanguageCode={selectedLanguageCode}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+
 
                   </div>
 
@@ -1220,61 +1226,13 @@ export default function App() {
             setSearchQuery(q => ({ ...q, type: 'flights' }));
           }}
           className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
-            activeTab === 'flights' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
+            activeTab !== 'bookings' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
           }`}
-          id="mobile-nav-flights"
+          id="mobile-nav-search"
         >
-          <Plane className={`h-5 w-5 ${activeTab === 'flights' ? 'text-blue-600' : 'text-slate-400'}`} />
+          <Search className={`h-5 w-5 ${activeTab !== 'bookings' ? 'text-blue-600' : 'text-slate-400'}`} />
           <span className="text-[10px] font-bold mt-1 tracking-tight">
-            {selectedLanguageCode === 'ko' ? '항공' : 'Flights'}
-          </span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('hotels');
-            setSearchQuery(q => ({ ...q, type: 'hotels' }));
-          }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
-            activeTab === 'hotels' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
-          }`}
-          id="mobile-nav-hotels"
-        >
-          <HotelIcon className={`h-5 w-5 ${activeTab === 'hotels' ? 'text-blue-600' : 'text-slate-400'}`} />
-          <span className="text-[10px] font-bold mt-1 tracking-tight">
-            {selectedLanguageCode === 'ko' ? '숙소' : 'Hotels'}
-          </span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('cars');
-            setSearchQuery(q => ({ ...q, type: 'cars' }));
-          }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
-            activeTab === 'cars' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
-          }`}
-          id="mobile-nav-cars"
-        >
-          <Car className={`h-5 w-5 ${activeTab === 'cars' ? 'text-blue-600' : 'text-slate-400'}`} />
-          <span className="text-[10px] font-bold mt-1 tracking-tight">
-            {selectedLanguageCode === 'ko' ? '렌터카' : 'Cars'}
-          </span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('deals');
-            setSearchQuery(q => ({ ...q, type: 'deals' }));
-          }}
-          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
-            activeTab === 'deals' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
-          }`}
-          id="mobile-nav-deals"
-        >
-          <Tag className={`h-5 w-5 ${activeTab === 'deals' ? 'text-blue-600' : 'text-slate-400'}`} />
-          <span className="text-[10px] font-bold mt-1 tracking-tight">
-            {selectedLanguageCode === 'ko' ? '혜택' : 'Deals'}
+            {selectedLanguageCode === 'ko' ? '검색' : 'Search'}
           </span>
         </button>
 
@@ -1287,10 +1245,10 @@ export default function App() {
         >
           <Briefcase className={`h-5 w-5 ${activeTab === 'bookings' ? 'text-blue-600' : 'text-slate-400'}`} />
           <span className="text-[10px] font-bold mt-1 tracking-tight">
-            {selectedLanguageCode === 'ko' ? '예약내역' : 'Bookings'}
+            {selectedLanguageCode === 'ko' ? '나의 예약' : 'My Bookings'}
           </span>
           {bookings.length > 0 && (
-            <span className="absolute top-1 right-4 bg-blue-600 text-white text-[8px] font-bold h-3.5 w-3.5 flex items-center justify-center rounded-full">
+            <span className="absolute top-1 right-8 bg-blue-600 text-white text-[8px] font-bold h-3.5 w-3.5 flex items-center justify-center rounded-full">
               {bookings.length}
             </span>
           )}
@@ -1355,6 +1313,16 @@ export default function App() {
         selectedLanguageCode={selectedLanguageCode}
       />
 
+      {/* App Download/Installation Modal */}
+      <AnimatePresence>
+        {isAppDownloadOpen && (
+          <AppDownloadModal
+            isOpen={isAppDownloadOpen}
+            onClose={() => setIsAppDownloadOpen(false)}
+            language={language}
+          />
+        )}
+      </AnimatePresence>
 
     </div>
   );

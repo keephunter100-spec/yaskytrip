@@ -1,6 +1,6 @@
 {
   "name": "YASKYTRIP",
-  "description": "A sleek, interactive flight and hotel search engine with advanced filtering, sorting, and booking simulation.",
+  "description": "YASKYTRIP 실시간 제휴 할인 및 쿠폰 검색, 그리고 간편한 나의 예약 내역 조회 및 일정 관리 서비스",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
