@@ -107,7 +107,7 @@ export default function AppDownloadModal({ isOpen, onClose, language }: AppDownl
             {/* App logo and info */}
             <div className="flex items-center space-x-4">
               <img
-                src="/src/assets/images/sharp_favicon_1782905090836.jpg"
+                src="/sharp_favicon_1782905090836.jpg"
                 alt="YASKYTRIP App Logo"
                 className="h-16 w-16 rounded-2xl object-cover shadow-md border border-slate-100"
                 referrerPolicy="no-referrer"

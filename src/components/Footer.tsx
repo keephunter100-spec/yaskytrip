@@ -18,7 +18,7 @@ export default function Footer({ onShowRefundPolicy, selectedLanguageCode = 'ko'
           <div className="space-y-4">
             <div className="flex items-center space-x-2.5 text-white text-xl">
               <img
-                src="/src/assets/images/sharp_favicon_1782905090836.jpg"
+                src="/sharp_favicon_1782905090836.jpg"
                 alt="YASKYTRIP Logo"
                 className="h-8 w-8 rounded-lg object-cover shadow-sm border border-slate-800"
                 referrerPolicy="no-referrer"

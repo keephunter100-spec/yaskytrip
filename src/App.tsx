@@ -702,7 +702,7 @@ export default function App() {
             <div className="relative rounded-2xl p-[1px] bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 shadow-md overflow-hidden shrink-0 w-full max-w-2xl" id="app-install-header-box">
               <div className="bg-white rounded-[15px] p-4 flex flex-col sm:flex-row items-center gap-4 w-full">
                 <img
-                  src="/src/assets/images/sharp_favicon_1782905090836.jpg"
+                  src="/sharp_favicon_1782905090836.jpg"
                   alt="YASKYTRIP App Logo"
                   className="h-12 w-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0"
                   referrerPolicy="no-referrer"

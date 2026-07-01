@@ -4,12 +4,12 @@
   "description": "스마트한 여행의 시작, YASKYTRIP! 전 세계 실시간 항공권 비교 및 최저가 호텔 검색, 맞춤 패키지 예약 서비스를 편리하게 즐겨보세요.",
   "icons": [
     {
-      "src": "/src/assets/images/sharp_favicon_1782905090836.jpg",
+      "src": "/sharp_favicon_1782905090836.jpg",
       "type": "image/jpeg",
       "sizes": "192x192"
     },
     {
-      "src": "/src/assets/images/sharp_favicon_1782905090836.jpg",
+      "src": "/sharp_favicon_1782905090836.jpg",
       "type": "image/jpeg",
       "sizes": "512x512"
     }

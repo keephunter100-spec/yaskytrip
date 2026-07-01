@@ -3,7 +3,7 @@ const CACHE_NAME = 'yaskytrip-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/src/assets/images/sharp_favicon_1782905090836.jpg'
+  '/sharp_favicon_1782905090836.jpg'
 ];
 
 self.addEventListener('install', (event) => {

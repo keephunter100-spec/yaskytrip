@@ -61,7 +61,7 @@ export default function Header({
               id="logo-btn"
             >
               <img
-                src="/src/assets/images/sharp_favicon_1782905090836.jpg"
+                src="/sharp_favicon_1782905090836.jpg"
                 alt="YASKYTRIP Logo"
                 className="h-8 w-8 rounded-lg object-cover shadow-sm border border-slate-100"
                 referrerPolicy="no-referrer"
