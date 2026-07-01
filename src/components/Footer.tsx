@@ -78,66 +78,7 @@ export default function Footer({ onShowRefundPolicy, selectedLanguageCode = 'ko'
           
         </div>
 
-        {/* Brand New Professional Company Info & About Us Sections (회사 정보 / 회사 소개) */}
-        <div className="mt-12 pt-8 border-t border-gray-900/80 grid grid-cols-1 md:grid-cols-3 gap-8 text-xs text-slate-500">
-          {/* Column 1: Company Registration Info */}
-          <div className="space-y-2.5">
-            <h5 className="text-gray-300 font-extrabold uppercase tracking-wider text-[11px] font-sans">
-              {isKo ? '사업자 정보' : 'Company Details'}
-            </h5>
-            <div className="space-y-1.5 font-sans text-[11px] leading-relaxed">
-              <p>
-                <span className="font-extrabold text-slate-400">{isKo ? '상호명: ' : 'Company Name: '}</span>
-                <span className="text-slate-500">(주)야스키트립 (YASKYTRIP Inc.)</span>
-              </p>
-              <p>
-                <span className="font-extrabold text-slate-400">{isKo ? '대표이사: ' : 'CEO: '}</span>
-                <span className="text-slate-500">{isKo ? '백정열' : 'Paik Jung-yeol'}</span>
-              </p>
-              <p>
-                <span className="font-extrabold text-slate-400">{isKo ? '사업자등록번호: ' : 'Business Registration: '}</span>
-                <span className="text-slate-500 font-mono">120-88-12345</span>
-              </p>
-              <p>
-                <span className="font-extrabold text-slate-400">{isKo ? '통신판매업신고: ' : 'E-Commerce Licence: '}</span>
-                <span className="text-slate-500">{isKo ? '제 2026-서울강남-0918호' : 'No. 2026-SeoulGangnam-0918'}</span>
-              </p>
-            </div>
-          </div>
 
-          {/* Column 2: Customer center & Address */}
-          <div className="space-y-2.5">
-            <h5 className="text-gray-300 font-extrabold uppercase tracking-wider text-[11px] font-sans">
-              {isKo ? '고객센터 & 주소' : 'Office & Inquiries'}
-            </h5>
-            <div className="space-y-1.5 font-sans text-[11px] leading-relaxed">
-              <p>
-                <span className="font-extrabold text-slate-400">{isKo ? '주소: ' : 'Address: '}</span>
-                <span className="text-slate-500">{isKo ? '서울시 강남구 테헤란로 427, 위워크타워 11층' : '11F, WeWork Tower, 427 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea'}</span>
-              </p>
-              <p>
-                <span className="font-extrabold text-slate-400">{isKo ? '이메일: ' : 'Email Support: '}</span>
-                <span className="text-slate-500 font-mono">support@yaskytrip.com</span>
-              </p>
-              <p>
-                <span className="font-extrabold text-slate-400">{isKo ? '대표전화: ' : 'Hotline: '}</span>
-                <span className="text-slate-500 font-mono">1588-1234 ({isKo ? '평일 09:00 - 18:00, 주말 휴무' : '09:00 - 18:00 KST, Weekends off'})</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Column 3: Corporate Mission & About Us */}
-          <div className="space-y-2.5">
-            <h5 className="text-gray-300 font-extrabold uppercase tracking-wider text-[11px] font-sans">
-              {isKo ? '회사 소개 (About Us)' : 'About YASKYTRIP'}
-            </h5>
-            <p className="text-[11px] leading-relaxed text-slate-500 text-justify font-sans">
-              {isKo 
-                ? 'YASKYTRIP(야스키트립)은 빅데이터 매칭 통합 엔진을 통해 전 세계 수많은 항공 경로 및 호텔 실시간 요금을 비교해 드리는 차세대 프리미엄 여행 메타서치 엔진입니다. 우리는 예약을 간결하게 디자인하고 투명하고 합리적인 비용 정보를 제공하여 완벽한 여행 계획을 선물합니다.'
-                : 'YASKYTRIP is a high-performance corporate travel metasearch service comparing thousands of schedules and room options globally. Utilizing advanced matching algorithms, we empower global travelers with fully optimized rates, transparent scheduling, and an intuitive booking experience.'}
-            </p>
-          </div>
-        </div>
 
         <div className="mt-8 pt-8 border-t border-gray-900 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600 select-none">
           <p className="text-left font-sans text-[10px] leading-normal text-slate-600">

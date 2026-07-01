@@ -81,157 +81,240 @@ const FlightCard: React.FC<FlightCardProps> = ({
   };
 
   const renderAirlineLogo = (code: string, originalLogo: string, name: string) => {
-    switch (code) {
-      case 'KE': // Korean Air
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g transform="rotate(-15 50 50)">
-                {/* Blue bottom half */}
-                <path d="M 15,50 A 35,35 0 0,0 85,50 C 85,67.5 67.5,67.5 50,50 C 32.5,32.5 15,32.5 15,50 Z" fill="#00529b" />
-                {/* Red top half */}
-                <path d="M 15,50 A 35,35 0 0,1 85,50 C 85,32.5 67.5,32.5 50,50 C 32.5,67.5 15,67.5 15,50 Z" fill="#c8102e" />
-                {/* White divider curve */}
-                <path d="M 15,50 C 32.5,67.5 50,32.5 85,50" stroke="#ffffff" strokeWidth="5.5" fill="none" />
-              </g>
-            </svg>
-          </div>
-        );
-      case 'OZ': // Asiana Airlines
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 65" className="w-11 h-7 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Red stripe */}
-              <path d="M 15 55 L 55 15 L 63 15 L 23 55 Z" fill="#d12640" />
-              {/* Yellow stripe */}
-              <path d="M 23 55 L 63 15 L 71 15 L 31 55 Z" fill="#f3b924" />
-              {/* Blue stripe */}
-              <path d="M 31 55 L 71 15 L 79 15 L 39 55 Z" fill="#2c3d8f" />
-              {/* Gray body */}
-              <path d="M 39 55 L 79 15 L 95 15 L 55 55 Z" fill="#899197" />
-            </svg>
-          </div>
-        );
-      case 'YP': // Air Premia
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 20 44" className="w-4 h-9 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="16" height="40" rx="8" fill="#ff5a19" />
-            </svg>
-          </div>
-        );
-      case '7C': // Jeju Air
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="50" cy="50" r="45" fill="#ff6f00" />
-              <path d="M 25,50 Q 50,75 75,50 Q 50,60 25,50 Z" fill="#ffffff" />
-              <circle cx="50" cy="40" r="8" fill="#ffffff" />
-            </svg>
-          </div>
-        );
-      case 'MM': // Peach Aviation
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="50" cy="50" r="45" fill="#d0006f" />
-              <path d="M 30,50 C 30,35 42,28 55,35 C 68,42 68,58 55,65 C 42,72 30,65 30,50 Z" fill="#ffffff" />
-              <circle cx="50" cy="50" r="10" fill="#d0006f" />
-            </svg>
-          </div>
-        );
-      case 'JL': // Japan Airlines
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="50" cy="50" r="45" fill="#e10613" />
-              <path d="M 50,20 C 33,20 20,33 20,50 C 20,62 27,72 38,77 L 50,50 L 62,77 C 73,72 80,62 80,50 C 80,33 67,20 50,20 Z" fill="#ffffff" />
-              <circle cx="50" cy="50" r="12" fill="#e10613" />
-              <path d="M 45,50 L 55,50 L 50,25 Z" fill="#ffffff" />
-            </svg>
-          </div>
-        );
-      case 'NH': // All Nippon Airways
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 15,80 L 45,20 L 65,20 L 35,80 Z" fill="#002d72" />
-              <path d="M 40,80 L 70,20 L 80,20 L 50,80 Z" fill="#00a0e9" />
-            </svg>
-          </div>
-        );
-      case 'DL': // Delta Air Lines
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 15,80 L 50,15 L 85,80 L 50,65 Z" fill="#e01933" />
-              <path d="M 50,15 L 85,80 L 50,65 Z" fill="#9e1224" />
-            </svg>
-          </div>
-        );
-      case 'BA': // British Airways
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 50" className="w-11 h-6 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 10,40 L 45,10 L 90,10 L 55,40 Z" fill="#00247d" />
-              <path d="M 40,25 L 55,10 L 90,10 L 75,25 Z" fill="#cf142b" />
-            </svg>
-          </div>
-        );
-      case 'AF': // Air France
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 50" className="w-11 h-6 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 15,40 C 35,40 65,30 85,10 L 75,10 C 60,25 35,30 15,30 Z" fill="#ed2939" />
-            </svg>
-          </div>
-        );
-      case 'SQ': // Singapore Airlines
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 80" className="w-11 h-9 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 15,55 C 30,55 45,45 75,20 L 65,15 C 45,30 30,35 15,35 Z" fill="#e2a425" />
-              <path d="M 30,35 L 45,20 L 80,20 L 65,35 Z" fill="#e2a425" />
-              <circle cx="25" cy="25" r="4" fill="#e2a425" />
-            </svg>
-          </div>
-        );
-      case 'UA': // United Airlines
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="50" cy="50" r="45" fill="#005da1" />
-              <circle cx="50" cy="50" r="45" stroke="#b1965a" strokeWidth="3" fill="none" />
-              <ellipse cx="50" cy="50" rx="30" ry="45" stroke="#ffffff" strokeWidth="2" fill="none" />
-              <ellipse cx="50" cy="50" rx="15" ry="45" stroke="#ffffff" strokeWidth="2" fill="none" />
-              <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff" strokeWidth="2" />
-              <path d="M 13,25 Q 50,40 87,25" stroke="#ffffff" strokeWidth="2" fill="none" />
-              <path d="M 13,75 Q 50,60 87,75" stroke="#ffffff" strokeWidth="2" fill="none" />
-            </svg>
-          </div>
-        );
-      case 'EK': // Emirates
-        return (
-          <div className="flex items-center justify-center w-12 h-12 shrink-0 group hover:scale-105 transition-transform duration-200">
-            <svg viewBox="0 0 100 100" className="w-10 h-10 select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="10" y="10" width="80" height="80" rx="10" fill="#d71920" />
-              <path d="M 30,35 Q 50,20 70,35 T 50,75 Z" stroke="#ffd700" strokeWidth="4.5" fill="none" />
-              <line x1="50" y1="30" x2="50" y2="70" stroke="#ffd700" strokeWidth="4.5" />
-            </svg>
-          </div>
-        );
-      default:
-        return (
-          <div className="relative flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 border border-blue-100 shadow-2xs shrink-0 font-sans group hover:scale-105 transition-transform duration-200">
-            <div className="absolute inset-0.5 rounded-full bg-blue-600 flex items-center justify-center text-white">
-              <Plane className="h-6 w-6 text-white rotate-45 transform" />
-            </div>
-            <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-800 text-[8px] text-white font-extrabold border border-white shadow-sm">
-              {code.slice(0, 2)}
-            </div>
-          </div>
-        );
+    // High-fidelity local inline SVGs for major airlines to guarantee instant, beautiful rendering
+    if (code === 'KE') { // Korean Air
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none bg-white rounded-xl p-0.5 border border-slate-100 group" title={name}>
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Korean_Air_emblem.svg"
+            alt={name}
+            className="w-11 h-11 object-contain select-none transition-transform duration-200 group-hover:scale-105"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== 'https://images.kiwi.com/airlines/128/KE.png') {
+                target.src = 'https://images.kiwi.com/airlines/128/KE.png';
+              } else {
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center text-white font-black text-xs shadow-xs';
+                  fallback.innerText = 'KE';
+                  parent.appendChild(fallback);
+                }
+              }
+            }}
+          />
+        </div>
+      );
     }
+
+    if (code === 'SQ') { // Singapore Airlines
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 100" className="w-11 h-11 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Stylized Singapore Airlines Golden Kris Bird */}
+            <path 
+              d="M10 25 L90 25 L75 35 L90 35 L65 47 L80 47 L35 73 C37 60 41 45 41 38 C35 38 28 35 25 31 C22 27 25 25 35 25 Z" 
+              fill="#e2a425" 
+            />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'OZ') { // Asiana Airlines
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 65" className="w-11 h-7 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Red stripe */}
+            <path d="M 15 55 L 55 15 L 63 15 L 23 55 Z" fill="#d12640" />
+            {/* Yellow stripe */}
+            <path d="M 23 55 L 63 15 L 71 15 L 31 55 Z" fill="#f3b924" />
+            {/* Blue stripe */}
+            <path d="M 31 55 L 71 15 L 79 15 L 39 55 Z" fill="#2c3d8f" />
+            {/* Gray body */}
+            <path d="M 39 55 L 79 15 L 95 15 L 55 55 Z" fill="#899197" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'YP') { // Air Premia
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 20 44" className="w-4 h-9 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="16" height="40" rx="8" fill="#ff5a19" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === '7C') { // Jeju Air
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none bg-white rounded-xl p-0.5 border border-slate-100 group" title={name}>
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/4/4b/Jeju_Air_Logo.svg"
+            alt={name}
+            className="w-11 h-11 object-contain select-none transition-transform duration-200 group-hover:scale-105"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== 'https://images.kiwi.com/airlines/128/7C.png') {
+                target.src = 'https://images.kiwi.com/airlines/128/7C.png';
+              } else {
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-black text-xs shadow-xs';
+                  fallback.innerText = '7C';
+                  parent.appendChild(fallback);
+                }
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
+    if (code === 'MM') { // Peach Aviation
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 100" className="w-10 h-10 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="#d0006f" />
+            <path d="M 30,50 C 30,35 42,28 55,35 C 68,42 68,58 55,65 C 42,72 30,65 30,50 Z" fill="#ffffff" />
+            <circle cx="50" cy="50" r="10" fill="#d0006f" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'JL') { // Japan Airlines
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 100" className="w-10 h-10 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="#e10613" />
+            <path d="M 50,20 C 33,20 20,33 20,50 C 20,62 27,72 38,77 L 50,50 L 62,77 C 73,72 80,62 80,50 C 80,33 67,20 50,20 Z" fill="#ffffff" />
+            <circle cx="50" cy="50" r="12" fill="#e10613" />
+            <path d="M 45,50 L 55,50 L 50,25 Z" fill="#ffffff" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'NH') { // All Nippon Airways
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 100" className="w-10 h-10 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 15,80 L 45,20 L 65,20 L 35,80 Z" fill="#002d72" />
+            <path d="M 40,80 L 70,20 L 80,20 L 50,80 Z" fill="#00a0e9" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'DL') { // Delta Air Lines
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 100" className="w-10 h-10 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 15,80 L 50,15 L 85,80 L 50,65 Z" fill="#e01933" />
+            <path d="M 50,15 L 85,80 L 50,65 Z" fill="#9e1224" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'BA') { // British Airways
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 50" className="w-11 h-6 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 10,40 L 45,10 L 90,10 L 55,40 Z" fill="#00247d" />
+            <path d="M 40,25 L 55,10 L 90,10 L 75,25 Z" fill="#cf142b" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'AF') { // Air France
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 50" className="w-11 h-6 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 15,40 C 35,40 65,30 85,10 L 75,10 C 60,25 35,30 15,30 Z" fill="#ed2939" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'UA') { // United Airlines
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none group" title={name}>
+          <svg viewBox="0 0 100 100" className="w-10 h-10 transition-transform duration-200 group-hover:scale-105" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="#005da1" />
+            <circle cx="50" cy="50" r="45" stroke="#b1965a" strokeWidth="3" fill="none" />
+            <ellipse cx="50" cy="50" rx="30" ry="45" stroke="#ffffff" strokeWidth="2" fill="none" />
+            <ellipse cx="50" cy="50" rx="15" ry="45" stroke="#ffffff" strokeWidth="2" fill="none" />
+            <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff" strokeWidth="2" />
+            <path d="M 13,25 Q 50,40 87,25" stroke="#ffffff" strokeWidth="2" fill="none" />
+            <path d="M 13,75 Q 50,60 87,75" stroke="#ffffff" strokeWidth="2" fill="none" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (code === 'EK') { // Emirates
+      return (
+        <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none bg-white rounded-xl p-0.5 border border-slate-100 group" title={name}>
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/d/db/Emirates_logo.svg"
+            alt={name}
+            className="w-11 h-11 object-contain select-none transition-transform duration-200 group-hover:scale-105"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (target.src !== 'https://images.kiwi.com/airlines/128/EK.png') {
+                target.src = 'https://images.kiwi.com/airlines/128/EK.png';
+              } else {
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white font-black text-xs shadow-xs';
+                  fallback.innerText = 'EK';
+                  parent.appendChild(fallback);
+                }
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
+    // High-resolution Kiwi.com fallback CDN (does not block referer / hotlinking)
+    const logoUrl = `https://images.kiwi.com/airlines/128/${code}.png`;
+
+    return (
+      <div className="flex items-center justify-center w-12 h-12 shrink-0 select-none bg-slate-50 border border-slate-100 rounded-xl p-1" title={name}>
+        <img
+          src={logoUrl}
+          alt={name}
+          className="w-10 h-10 object-contain select-none transition-transform duration-200 hover:scale-105"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent) {
+              const fallback = document.createElement('div');
+              fallback.className = 'w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-xs shadow-xs';
+              fallback.innerText = code.slice(0, 2);
+              parent.appendChild(fallback);
+            }
+          }}
+        />
+      </div>
+    );
   };
 
   const outboundSegments = flight.outbound;
@@ -282,27 +365,27 @@ const FlightCard: React.FC<FlightCardProps> = ({
           <div className="md:col-span-8 lg:col-span-9 space-y-5">
             
             {/* OUTBOUND SECTION */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               {renderAirlineLogo(firstOutbound.airline.code, firstOutbound.airline.logo, firstOutbound.airline.name)}
-              <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4 items-center">
+              <div className="flex-1 grid grid-cols-3 gap-1 sm:gap-4 items-center min-w-0">
                 {/* Departure Time */}
-                <div className="text-left">
-                  <span className="block text-2xl font-black text-slate-900 tracking-tight">{firstOutbound.departureTime}</span>
-                  <span className="block text-[11px] text-slate-400 font-bold font-sans mt-0.5">
-                    {firstOutbound.departureAirport.code} · {outDateFormatted || (isKo ? '가는 날' : 'Departure')}
+                <div className="text-left min-w-0">
+                  <span className="block text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{firstOutbound.departureTime}</span>
+                  <span className="block text-[10px] sm:text-[11px] text-slate-400 font-bold font-sans mt-0.5 truncate">
+                    {firstOutbound.departureAirport.code}<span className="hidden sm:inline"> · {outDateFormatted || (isKo ? '가는 날' : 'Departure')}</span>
                   </span>
                 </div>
 
                 {/* Timeline Vector */}
-                <div className="flex flex-col items-center justify-center relative px-1 sm:px-4">
+                <div className="flex flex-col items-center justify-center relative px-0.5 sm:px-4 min-w-0">
                   {/* Stops Badge */}
-                  <div className="z-10 bg-white px-2">
+                  <div className="z-10 bg-white px-1 sm:px-2">
                     {flight.stopsOutbound === 0 ? (
-                      <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-black">
+                      <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-full font-black">
                         {isKo ? '직항' : 'Non-stop'}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full font-black">
+                      <span className="text-[9px] sm:text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full font-black">
                         {isKo ? `경유 ${flight.stopsOutbound}회` : `${flight.stopsOutbound} Stop${flight.stopsOutbound > 1 ? 's' : ''}`}
                       </span>
                     )}
@@ -314,8 +397,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
                     
                     {/* Centered Highly Visible Blue Plane */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="bg-white px-1.5">
-                        <Plane className="h-4 w-4 text-blue-600 rotate-90 transform" />
+                      <div className="bg-white px-1">
+                        <Plane className="h-4.5 w-4.5 text-blue-600 rotate-90 transform" />
                       </div>
                     </div>
 
@@ -326,22 +409,22 @@ const FlightCard: React.FC<FlightCardProps> = ({
                   </div>
 
                   {/* Duration Text */}
-                  <span className="text-[11px] text-slate-500 font-bold mt-1">
+                  <span className="text-[9px] sm:text-[11px] text-slate-500 font-bold mt-1 whitespace-nowrap">
                     {formatDuration(flight.totalDurationOutbound)}
                   </span>
                   
                   {flight.stopsOutbound > 0 && (
-                    <span className="text-[9px] text-rose-500 font-bold mt-0.5">
+                    <span className="text-[8px] sm:text-[9px] text-rose-500 font-bold mt-0.5">
                       {outboundSegments.map((s, idx) => idx < outboundSegments.length - 1 ? s.arrivalAirport.code : '').filter(Boolean).join(', ')}
                     </span>
                   )}
                 </div>
 
                 {/* Arrival Time */}
-                <div className="text-right sm:text-center">
-                  <span className="block text-2xl font-black text-slate-900 tracking-tight">{lastOutbound.arrivalTime}</span>
-                  <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
-                    {lastOutbound.arrivalAirport.code} · {outDateFormatted || (isKo ? '가는 날' : 'Departure')}
+                <div className="text-right min-w-0">
+                  <span className="block text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{lastOutbound.arrivalTime}</span>
+                  <span className="block text-[10px] sm:text-[11px] text-slate-400 font-bold mt-0.5 truncate">
+                    {lastOutbound.arrivalAirport.code}<span className="hidden sm:inline"> · {outDateFormatted || (isKo ? '가는 날' : 'Departure')}</span>
                   </span>
                 </div>
               </div>
@@ -349,27 +432,27 @@ const FlightCard: React.FC<FlightCardProps> = ({
 
             {/* INBOUND SECTION */}
             {inboundSegments && firstInbound && lastInbound && (
-              <div className="flex items-center space-x-4 pt-4 border-t border-slate-100">
+              <div className="flex items-center space-x-3 sm:space-x-4 pt-4 border-t border-slate-100">
                 {renderAirlineLogo(firstInbound.airline.code, firstInbound.airline.logo, firstInbound.airline.name)}
-                <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4 items-center">
+                <div className="flex-1 grid grid-cols-3 gap-1 sm:gap-4 items-center min-w-0">
                   {/* Departure */}
-                  <div className="text-left">
-                    <span className="block text-2xl font-black text-slate-900 tracking-tight">{firstInbound.departureTime}</span>
-                    <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
-                      {firstInbound.departureAirport.code} · {inDateFormatted || (isKo ? '오는 날' : 'Return')}
+                  <div className="text-left min-w-0">
+                    <span className="block text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{firstInbound.departureTime}</span>
+                    <span className="block text-[10px] sm:text-[11px] text-slate-400 font-bold mt-0.5 truncate">
+                      {firstInbound.departureAirport.code}<span className="hidden sm:inline"> · {inDateFormatted || (isKo ? '오는 날' : 'Return')}</span>
                     </span>
                   </div>
 
                   {/* Timeline Vector */}
-                  <div className="flex flex-col items-center justify-center relative px-1 sm:px-4">
+                  <div className="flex flex-col items-center justify-center relative px-0.5 sm:px-4 min-w-0">
                     {/* Stops Badge */}
-                    <div className="z-10 bg-white px-2">
+                    <div className="z-10 bg-white px-1 sm:px-2">
                       {flight.stopsInbound === 0 ? (
-                        <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-black">
+                        <span className="text-[9px] sm:text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-full font-black">
                           {isKo ? '직항' : 'Non-stop'}
                         </span>
                       ) : (
-                        <span className="text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full font-black">
+                        <span className="text-[9px] sm:text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full font-black">
                           {isKo ? `경유 ${flight.stopsInbound}회` : `${flight.stopsInbound} Stop${flight.stopsInbound > 1 ? 's' : ''}`}
                         </span>
                       )}
@@ -381,8 +464,8 @@ const FlightCard: React.FC<FlightCardProps> = ({
                       
                       {/* Centered Highly Visible Blue Plane */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="bg-white px-1.5">
-                          <Plane className="h-4 w-4 text-blue-600 rotate-90 transform" />
+                        <div className="bg-white px-1">
+                          <Plane className="h-4.5 w-4.5 text-blue-600 rotate-90 transform" />
                         </div>
                       </div>
 
@@ -393,22 +476,22 @@ const FlightCard: React.FC<FlightCardProps> = ({
                     </div>
 
                     {/* Duration */}
-                    <span className="text-[11px] text-slate-500 font-bold mt-1">
+                    <span className="text-[9px] sm:text-[11px] text-slate-500 font-bold mt-1 whitespace-nowrap">
                       {formatDuration(flight.totalDurationInbound || 0)}
                     </span>
 
                     {flight.stopsInbound && flight.stopsInbound > 0 && (
-                      <span className="text-[9px] text-rose-500 font-bold mt-0.5">
+                      <span className="text-[8px] sm:text-[9px] text-rose-500 font-bold mt-0.5">
                         {inboundSegments.map((s, idx) => idx < inboundSegments.length - 1 ? s.arrivalAirport.code : '').filter(Boolean).join(', ')}
                       </span>
                     )}
                   </div>
 
                   {/* Arrival */}
-                  <div className="text-right sm:text-center">
-                    <span className="block text-2xl font-black text-slate-900 tracking-tight">{lastInbound.arrivalTime}</span>
-                    <span className="block text-[11px] text-slate-400 font-bold mt-0.5">
-                      {lastInbound.arrivalAirport.code} · {inDateFormatted || (isKo ? '오는 날' : 'Return')}
+                  <div className="text-right min-w-0">
+                    <span className="block text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{lastInbound.arrivalTime}</span>
+                    <span className="block text-[10px] sm:text-[11px] text-slate-400 font-bold mt-0.5 truncate">
+                      {lastInbound.arrivalAirport.code}<span className="hidden sm:inline"> · {inDateFormatted || (isKo ? '오는 날' : 'Return')}</span>
                     </span>
                   </div>
                 </div>
@@ -430,7 +513,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
           </div>
 
           {/* Right Panel: Pricing & Booking Actions */}
-          <div className="md:col-span-4 lg:col-span-3 border-t md:border-t-0 md:border-l border-slate-100 p-6 flex flex-col justify-between items-stretch text-right bg-slate-50/30 md:bg-transparent rounded-b-2xl md:rounded-r-2xl h-full min-h-[160px]">
+          <div className="md:col-span-4 lg:col-span-3 border-t md:border-t-0 md:border-l border-slate-100 p-4 sm:p-6 flex flex-col justify-between items-stretch text-right bg-slate-50/30 md:bg-transparent rounded-b-2xl md:rounded-r-2xl h-full min-h-0 md:min-h-[160px]">
             
             {/* Baggage & Cabin Class Indicators */}
             <div className="flex flex-col items-end space-y-1.5 mb-2">
@@ -491,6 +574,17 @@ const FlightCard: React.FC<FlightCardProps> = ({
               >
                 <span>{isKo ? '일정 선택 및 예약' : 'Select & Book'}</span>
               </button>
+
+              <a
+                href="https://kr.trip.com/?Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18366035"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[10px] py-1.5 px-2.5 rounded-xl transition-all flex items-center justify-center space-x-1 cursor-pointer"
+              >
+                <span className="text-sky-500 font-black">Trip.com</span>
+                <span className="text-slate-300">|</span>
+                <span>{isKo ? '공식 제휴 즉시 예약' : 'Official Partner Booking'}</span>
+              </a>
 
               <button
                 type="button"

@@ -674,7 +674,7 @@ export default function App() {
         setActiveTab={(tab) => {
           setActiveTab(tab);
           // Sync search query category if tabs clicked
-          if (tab === 'flights' || tab === 'hotels') {
+          if (tab === 'flights' || tab === 'hotels' || tab === 'packages' || tab === 'cars' || tab === 'deals') {
             setSearchQuery(q => ({ ...q, type: tab }));
           }
         }} 
@@ -691,7 +691,7 @@ export default function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8" id="main-content">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 md:pb-8 space-y-8" id="main-content">
         
         {/* Search Engine Area */}
         <section className="space-y-4">
@@ -758,7 +758,16 @@ export default function App() {
             </div>
           </div>
 
-          <SearchForm onSearch={handleSearch} initialQuery={searchQuery} language={language} selectedLanguageCode={selectedLanguageCode} />
+          <SearchForm 
+            onSearch={handleSearch} 
+            initialQuery={searchQuery} 
+            language={language} 
+            selectedLanguageCode={selectedLanguageCode} 
+            onTabChange={(tab) => {
+              setActiveTab(tab);
+              setSearchQuery(q => ({ ...q, type: tab }));
+            }}
+          />
         </section>
 
         {/* Searching Loader Screen */}
@@ -1204,6 +1213,91 @@ export default function App() {
         onShowRefundPolicy={() => setIsRefundModalOpen(true)} 
         selectedLanguageCode={selectedLanguageCode}
       />
+
+      {/* Mobile Bottom Navigation Bar (md:hidden) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 px-2 py-1 flex justify-around items-center h-16 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] pb-safe" id="mobile-bottom-nav">
+        <button
+          onClick={() => {
+            setActiveTab('flights');
+            setSearchQuery(q => ({ ...q, type: 'flights' }));
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
+            activeTab === 'flights' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
+          }`}
+          id="mobile-nav-flights"
+        >
+          <Plane className={`h-5 w-5 ${activeTab === 'flights' ? 'text-blue-600' : 'text-slate-400'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">
+            {selectedLanguageCode === 'ko' ? '항공' : 'Flights'}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('hotels');
+            setSearchQuery(q => ({ ...q, type: 'hotels' }));
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
+            activeTab === 'hotels' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
+          }`}
+          id="mobile-nav-hotels"
+        >
+          <HotelIcon className={`h-5 w-5 ${activeTab === 'hotels' ? 'text-blue-600' : 'text-slate-400'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">
+            {selectedLanguageCode === 'ko' ? '숙소' : 'Hotels'}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('cars');
+            setSearchQuery(q => ({ ...q, type: 'cars' }));
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
+            activeTab === 'cars' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
+          }`}
+          id="mobile-nav-cars"
+        >
+          <Car className={`h-5 w-5 ${activeTab === 'cars' ? 'text-blue-600' : 'text-slate-400'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">
+            {selectedLanguageCode === 'ko' ? '렌터카' : 'Cars'}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('deals');
+            setSearchQuery(q => ({ ...q, type: 'deals' }));
+          }}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all ${
+            activeTab === 'deals' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
+          }`}
+          id="mobile-nav-deals"
+        >
+          <Tag className={`h-5 w-5 ${activeTab === 'deals' ? 'text-blue-600' : 'text-slate-400'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">
+            {selectedLanguageCode === 'ko' ? '혜택' : 'Deals'}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('bookings')}
+          className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-center cursor-pointer transition-all relative ${
+            activeTab === 'bookings' ? 'text-blue-600' : 'text-slate-500 hover:text-blue-500'
+          }`}
+          id="mobile-nav-bookings"
+        >
+          <Briefcase className={`h-5 w-5 ${activeTab === 'bookings' ? 'text-blue-600' : 'text-slate-400'}`} />
+          <span className="text-[10px] font-bold mt-1 tracking-tight">
+            {selectedLanguageCode === 'ko' ? '예약내역' : 'Bookings'}
+          </span>
+          {bookings.length > 0 && (
+            <span className="absolute top-1 right-4 bg-blue-600 text-white text-[8px] font-bold h-3.5 w-3.5 flex items-center justify-center rounded-full">
+              {bookings.length}
+            </span>
+          )}
+        </button>
+      </div>
 
       {/* Refund & Cancellation Policy Modal */}
       <RefundPolicyModal 

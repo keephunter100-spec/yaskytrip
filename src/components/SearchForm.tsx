@@ -10,6 +10,7 @@ interface SearchFormProps {
   initialQuery?: SearchQuery;
   language?: 'KO' | 'EN';
   selectedLanguageCode?: string;
+  onTabChange?: (tab: 'flights' | 'hotels' | 'packages' | 'cars' | 'deals') => void;
 }
 
 // Mapped helper for English to Local City Name Translation
@@ -108,8 +109,15 @@ const formatKoreanDate = (dateStr: string, selectedLanguageCode: string = 'ko') 
   return dateStr;
 };
 
-export default function SearchForm({ onSearch, initialQuery, language = 'KO', selectedLanguageCode = 'ko' }: SearchFormProps) {
+export default function SearchForm({ onSearch, initialQuery, language = 'KO', selectedLanguageCode = 'ko', onTabChange }: SearchFormProps) {
   const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages' | 'cars' | 'deals'>(initialQuery?.type || 'flights');
+
+  const handleTypeChange = (type: 'flights' | 'hotels' | 'packages' | 'cars' | 'deals') => {
+    setActiveType(type);
+    if (onTabChange) {
+      onTabChange(type);
+    }
+  };
   const [tripType, setTripType] = useState<'round-trip' | 'one-way'>(initialQuery?.tripType || 'round-trip');
   const [cabinClass, setCabinClass] = useState<'economy' | 'premium' | 'business' | 'first'>(initialQuery?.cabinClass || 'economy');
 
@@ -296,7 +304,7 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-slate-950 text-white rounded-3xl border border-white/10 shadow-2xl p-6 sm:p-8 shrink-0 relative overflow-hidden" id="search-container">
+    <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-slate-950 text-white rounded-3xl border border-white/10 shadow-2xl p-4 sm:p-8 shrink-0 relative overflow-hidden" id="search-container">
       
       {/* Decorative ambient background lights */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -306,44 +314,44 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
       <div className="relative z-30 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/10 pb-5 mb-6 gap-4">
         
         {/* Main Tab Triggers */}
-        <div className="flex space-x-1 bg-white/10 p-1 rounded-xl backdrop-blur-md">
+        <div className="flex overflow-x-auto no-scrollbar max-w-full space-x-1 bg-white/10 p-1 rounded-xl backdrop-blur-md flex-nowrap [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
-            onClick={() => setActiveType('flights')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            onClick={() => handleTypeChange('flights')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
               activeType === 'flights'
                 ? 'bg-white text-blue-900 shadow-lg'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
             id="type-select-flights"
           >
-            <Plane className="h-4 w-4" />
+            <Plane className="h-4 w-4 shrink-0" />
             <span>{t.flights}</span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveType('hotels')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            onClick={() => handleTypeChange('hotels')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
               activeType === 'hotels'
                 ? 'bg-white text-blue-900 shadow-lg'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
             id="type-select-hotels"
           >
-            <Hotel className="h-4 w-4" />
+            <Hotel className="h-4 w-4 shrink-0" />
             <span>{t.hotels}</span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveType('packages')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            onClick={() => handleTypeChange('packages')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
               activeType === 'packages'
                 ? 'bg-white text-blue-900 shadow-lg'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
             id="type-select-packages"
           >
-            <span className="flex items-center -space-x-1 mr-1">
+            <span className="flex items-center -space-x-1 mr-1 shrink-0">
               <Plane className="h-3.5 w-3.5 shrink-0" />
               <span className="text-[9px] font-bold text-current/70 shrink-0 self-center">+</span>
               <Hotel className="h-3.5 w-3.5 shrink-0" />
@@ -352,28 +360,28 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
           </button>
           <button
             type="button"
-            onClick={() => setActiveType('cars')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            onClick={() => handleTypeChange('cars')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
               activeType === 'cars'
                 ? 'bg-white text-blue-900 shadow-lg'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
             id="type-select-cars"
           >
-            <Car className="h-4 w-4" />
+            <Car className="h-4 w-4 shrink-0" />
             <span>{t.cars}</span>
           </button>
           <button
             type="button"
-            onClick={() => setActiveType('deals')}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+            onClick={() => handleTypeChange('deals')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
               activeType === 'deals'
                 ? 'bg-white text-blue-900 shadow-lg'
                 : 'text-white/80 hover:text-white hover:bg-white/5'
             }`}
             id="type-select-deals"
           >
-            <Tag className="h-4 w-4" />
+            <Tag className="h-4 w-4 shrink-0" />
             <span>{t.deals}</span>
           </button>
         </div>

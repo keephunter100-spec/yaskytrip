@@ -259,26 +259,39 @@ const HotelCard: React.FC<HotelCardProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center space-x-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setExpanded(!expanded)}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60 font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
-                >
-                  {isKo 
-                    ? (expanded ? '상세 숨기기' : '객실 및 후기 선택') 
-                    : (expanded ? 'Hide Details' : 'Rooms & Reviews')
-                  }
-                </button>
+              <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0 w-full sm:w-auto">
+                <div className="flex items-center space-x-2 justify-end w-full">
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(!expanded)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/60 font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                  >
+                    {isKo 
+                      ? (expanded ? '상세 숨기기' : '객실 및 후기 선택') 
+                      : (expanded ? 'Hide Details' : 'Rooms & Reviews')
+                    }
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => onBook(hotel, selectedRoom, currentRoomPrice)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
-                  id={`book-hotel-btn-${hotel.id}`}
+                  <button
+                    type="button"
+                    onClick={() => onBook(hotel, selectedRoom, currentRoomPrice)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-1.5 rounded transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                    id={`book-hotel-btn-${hotel.id}`}
+                  >
+                    {isKo ? '일정 선택 및 예약' : 'Select & Book'}
+                  </button>
+                </div>
+
+                <a
+                  href="https://kr.trip.com/?Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18366035"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[10px] py-1 px-2.5 rounded transition-all flex items-center justify-center space-x-1 cursor-pointer w-full sm:w-auto"
                 >
-                  {isKo ? '일정 선택 및 예약' : 'Select & Book'}
-                </button>
+                  <span className="text-sky-500 font-black">Trip.com</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="truncate">{isKo ? '공식 제휴 즉시 예약' : 'Official Partner Booking'}</span>
+                </a>
               </div>
             </div>
 
