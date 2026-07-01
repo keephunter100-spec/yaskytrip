@@ -10,7 +10,7 @@ interface SearchFormProps {
   initialQuery?: SearchQuery;
   language?: 'KO' | 'EN';
   selectedLanguageCode?: string;
-  onTabChange?: (tab: 'flights' | 'hotels' | 'packages' | 'cars') => void;
+  onTabChange?: (tab: 'flights' | 'hotels' | 'packages' | 'cars' | 'realtime') => void;
 }
 
 // Mapped helper for English to Local City Name Translation
@@ -110,9 +110,9 @@ const formatKoreanDate = (dateStr: string, selectedLanguageCode: string = 'ko') 
 };
 
 export default function SearchForm({ onSearch, initialQuery, language = 'KO', selectedLanguageCode = 'ko', onTabChange }: SearchFormProps) {
-  const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages' | 'cars'>(initialQuery?.type || 'flights');
+  const [activeType, setActiveType] = useState<'flights' | 'hotels' | 'packages' | 'cars' | 'realtime'>(initialQuery?.type || 'flights');
 
-  const handleTypeChange = (type: 'flights' | 'hotels' | 'packages' | 'cars') => {
+  const handleTypeChange = (type: 'flights' | 'hotels' | 'packages' | 'cars' | 'realtime') => {
     setActiveType(type);
     if (onTabChange) {
       onTabChange(type);
@@ -211,8 +211,10 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (activeType === 'realtime') return;
+
     onSearch({
-      type: activeType,
+      type: activeType as 'flights' | 'hotels' | 'packages' | 'cars',
       tripType,
       fromCity,
       toCity,
@@ -371,6 +373,22 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
             <Car className="h-4 w-4 shrink-0" />
             <span>{t.cars}</span>
           </button>
+          <button
+            type="button"
+            onClick={() => handleTypeChange('realtime')}
+            className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+              activeType === 'realtime'
+                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                : 'text-emerald-400 hover:text-emerald-300 hover:bg-white/5 font-bold border border-emerald-500/20'
+            }`}
+            id="type-select-realtime"
+          >
+            <span className="relative flex h-2 w-2 mr-0.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>{selectedLanguageCode === 'ko' ? '실시간 특가 ⚡' : 'Live Deals ⚡'}</span>
+          </button>
         </div>
 
         {/* Flight specific class & way filters */}
@@ -434,7 +452,7 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
       {/* Main Form Fields */}
       <form onSubmit={handleSearchSubmit} className="space-y-4 relative z-10" id="search-form">
          
-         {false ? (
+         {activeType === 'realtime' ? null : false ? (
            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
              {/* Promo search card - spans 9 cols */}
              <div className="md:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm flex items-center p-4 hover:bg-slate-50/70 h-[76px] transition-all relative group">

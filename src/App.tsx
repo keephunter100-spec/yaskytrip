@@ -15,6 +15,8 @@ import CarBookingModal from './components/CarBookingModal';
 import BookingModal from './components/BookingModal';
 import AuthModal from './components/AuthModal';
 import RefundPolicyModal from './components/RefundPolicyModal';
+import PrivacyPolicyModal from './components/PrivacyPolicyModal';
+import TravelpayoutsWidget from './components/TravelpayoutsWidget';
 import AISearchDrawer from './components/AISearchDrawer';
 import AppDownloadModal from './components/AppDownloadModal';
 import { generateFlights, generateHotels, generateCars, DISCOUNT_DEALS, AIRPORTS, CITIES } from './data';
@@ -203,7 +205,7 @@ export default function App() {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings' | 'packages' | 'cars'>('flights');
+  const [activeTab, setActiveTab] = useState<'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'realtime'>('flights');
   const [currency, setCurrency] = useState<string>(() => {
     return localStorage.getItem('yaskytrip_currency') || 'USD';
   });
@@ -346,6 +348,7 @@ export default function App() {
   });
 
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
 
   // Load Bookings from localStorage on Mount
   useEffect(() => {
@@ -791,7 +794,9 @@ export default function App() {
             selectedLanguageCode={selectedLanguageCode} 
             onTabChange={(tab) => {
               setActiveTab(tab);
-              setSearchQuery(q => ({ ...q, type: tab }));
+              if (tab !== 'realtime') {
+                setSearchQuery(q => ({ ...q, type: tab }));
+              }
             }}
           />
         </section>
@@ -990,6 +995,10 @@ export default function App() {
                     ))}
                   </div>
                 )}
+              </div>
+            ) : activeTab === 'realtime' ? (
+              <div className="lg:col-span-12 space-y-6" id="realtime-panel">
+                <TravelpayoutsWidget selectedLanguageCode={selectedLanguageCode} />
               </div>
             ) : (
               // FLIGHTS & HOTELS LISTINGS PANEL
@@ -1217,6 +1226,7 @@ export default function App() {
       {/* Footer */}
       <Footer 
         onShowRefundPolicy={() => setIsRefundModalOpen(true)} 
+        onShowPrivacyPolicy={() => setIsPrivacyModalOpen(true)}
         selectedLanguageCode={selectedLanguageCode}
       />
 
@@ -1261,6 +1271,12 @@ export default function App() {
       <RefundPolicyModal 
         isOpen={isRefundModalOpen} 
         onClose={() => setIsRefundModalOpen(false)} 
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal 
+        isOpen={isPrivacyModalOpen} 
+        onClose={() => setIsPrivacyModalOpen(false)} 
       />
 
       {/* Booking Checkout Multi-step Modal Container */}

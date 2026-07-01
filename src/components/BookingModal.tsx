@@ -68,7 +68,7 @@ export default function BookingModal({
       { name: 'Aviasales', logo: '✈️', url: 'https://www.aviasales.com/?marker=744042', desc: isKo ? '실시간 전세계 항공 최저가 비교' : 'Global Real-time Flight Search', color: 'bg-amber-500 hover:bg-amber-600' },
       { name: 'Skyscanner', logo: '🌐', url: 'https://www.skyscanner.co.kr/', desc: isKo ? '글로벌 가격 비교 No.1' : 'No.1 Global Price Comparison', color: 'bg-emerald-500 hover:bg-emerald-600' },
       { name: 'Google Flights', logo: '🔍', url: 'https://www.google.com/travel/flights', desc: isKo ? '구글 공식 항공 노선/가격 검색' : 'Google Official Route & Price Tool', color: 'bg-blue-600 hover:bg-blue-700' },
-      { name: 'Trip.com', logo: '💳', url: 'https://co.trip.com/flights/', desc: isKo ? '아시아 노선 및 카드사 특화 할인' : 'Asia Routes & Special Discounts', color: 'bg-sky-500 hover:bg-sky-600' },
+      { name: 'Trip.com', logo: '💳', url: 'https://kr.trip.com/?Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924', desc: isKo ? '아시아 노선 및 카드사 특화 할인' : 'Asia Routes & Special Discounts', color: 'bg-sky-500 hover:bg-sky-600' },
     ];
     if (!flight) return defaultList;
 
@@ -98,8 +98,8 @@ export default function BookingModal({
     // Google Flights
     const googleUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${destination}%20from%20${origin}%20on%20${depDate}${retDate ? '%20returning%20' + retDate : ''}`;
 
-    // Trip.com
-    const tripUrl = `https://co.trip.com/flights/show-flights-list?dcity=${origin}&acity=${destination}&ddate=${depDate}${retDate ? '&rdate=' + retDate : ''}&flighttype=${retDate ? 'rt' : 'ow'}&adult=1&class=y`;
+    // Trip.com with user affiliate tracking
+    const tripUrl = `https://kr.trip.com/flights/show-flights-list?dcity=${origin}&acity=${destination}&ddate=${depDate}${retDate ? '&rdate=' + retDate : ''}&flighttype=${retDate ? 'rt' : 'ow'}&adult=1&class=y&Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924`;
 
     return [
       { name: isKo ? 'Aviasales (추천)' : 'Aviasales (Recommended)', logo: '✈️', url: aviaUrl, desc: isKo ? '실시간 제휴 직항/경유 비교' : 'Live Direct & Transfer Flight Pricing', color: 'bg-amber-500 hover:bg-amber-600' },
@@ -123,7 +123,7 @@ export default function BookingModal({
     const hlUrl = `https://hotellook.com/search?location=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&marker=744042&language=ko`;
     const agodaUrl = `https://www.agoda.com/ko-kr/search?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=1`;
     const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(location)}&checkin=${checkIn}&checkout=${checkOut}&group_adults=1`;
-    const tripHotelUrl = `https://co.trip.com/hotels/list?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adult=1`;
+    const tripHotelUrl = `https://kr.trip.com/hotels/list?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adult=1&Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924`;
 
     return [
       { name: isKo ? 'Hotellook (추천)' : 'Hotellook (Recommended)', logo: '🏨', url: hlUrl, desc: isKo ? '전 세계 주요 사이트 최저가 요약' : 'Summarizes Best Rates Globally', color: 'bg-amber-500 hover:bg-amber-600' },

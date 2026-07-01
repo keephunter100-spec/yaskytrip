@@ -5,8 +5,8 @@ import { getTranslation } from '../utils/translations';
 import { CURRENCY_DATA } from '../types';
 
 interface HeaderProps {
-  activeTab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars';
-  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars') => void;
+  activeTab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'realtime';
+  setActiveTab: (tab: 'flights' | 'hotels' | 'bookings' | 'packages' | 'cars' | 'realtime') => void;
   bookingCount: number;
   currency: string;
   setCurrency: (currency: string) => void;

@@ -3,10 +3,11 @@ import { Plane, HelpCircle, Shield, Phone, Mail, Award, CheckCircle } from 'luci
 
 interface FooterProps {
   onShowRefundPolicy?: () => void;
+  onShowPrivacyPolicy?: () => void;
   selectedLanguageCode?: string;
 }
 
-export default function Footer({ onShowRefundPolicy, selectedLanguageCode = 'ko' }: FooterProps) {
+export default function Footer({ onShowRefundPolicy, onShowPrivacyPolicy, selectedLanguageCode = 'ko' }: FooterProps) {
   const isKo = selectedLanguageCode === 'ko';
 
   return (
@@ -59,6 +60,15 @@ export default function Footer({ onShowRefundPolicy, selectedLanguageCode = 'ko'
                   id="footer-refund-policy-btn"
                 >
                   {isKo ? '취소 및 환불 안내' : 'Cancellations & Refunds'}
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={onShowPrivacyPolicy} 
+                  className="hover:text-white transition-colors cursor-pointer text-left focus:outline-hidden font-bold text-emerald-500"
+                  id="footer-privacy-policy-btn"
+                >
+                  {isKo ? '개인정보보호정책' : 'Privacy Policy'}
                 </button>
               </li>
             </ul>

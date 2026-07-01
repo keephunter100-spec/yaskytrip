@@ -576,7 +576,7 @@ const FlightCard: React.FC<FlightCardProps> = ({
               </button>
 
               <a
-                href="https://kr.trip.com/?Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18366035"
+                href="https://kr.trip.com/?Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[10px] py-1.5 px-2.5 rounded-xl transition-all flex items-center justify-center space-x-1 cursor-pointer"
