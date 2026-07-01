@@ -400,16 +400,44 @@ export default function App() {
     }, 600);
   };
 
-  const handleSearch = (query: SearchQuery) => {
+  const handleSearch = async (query: SearchQuery) => {
     setSearching(true);
     setSearchQuery(query);
     setSearchTriggered(true);
 
-    // Simulate luxury search loading (750ms for that high-end feeling)
-    setTimeout(() => {
-      if (query.type === 'flights') {
-        const fromAirport = AIRPORTS.find(a => a.city === query.fromCity)?.code || 'ICN';
-        const toAirport = AIRPORTS.find(a => a.city === query.toCity)?.code || 'HND';
+    if (query.type === 'flights') {
+      const fromAirport = AIRPORTS.find(a => a.city === query.fromCity)?.code || 'ICN';
+      const toAirport = AIRPORTS.find(a => a.city === query.toCity)?.code || 'HND';
+
+      try {
+        const response = await fetch(
+          `/api/flights/search?origin=${fromAirport}&destination=${toAirport}&departureDate=${query.departureDate}${
+            query.returnDate ? '&returnDate=' + query.returnDate : ''
+          }&currency=${currency}`
+        );
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.length > 0) {
+          console.log('Using real-time Travelpayouts flight search results:', result.data);
+          setFlights(result.data);
+          const maxPrice = result.data.reduce((max: number, f: any) => f.price > max ? f.price : max, 500);
+          setFilters(f => ({ ...f, maxPrice, airlines: [] }));
+        } else {
+          // Fallback to high-quality mock engine if API returns no data for specific flight routes
+          const results = generateFlights(
+            fromAirport,
+            toAirport,
+            query.departureDate,
+            query.returnDate,
+            query.cabinClass,
+            query.passengers.adults + query.passengers.children
+          );
+          setFlights(results);
+          const maxPrice = results.reduce((max, f) => f.price > max ? f.price : max, 500);
+          setFilters(f => ({ ...f, maxPrice, airlines: [] }));
+        }
+      } catch (err) {
+        console.error('Failed to load real-time flight search. Falling back to mock engine.', err);
         const results = generateFlights(
           fromAirport,
           toAirport,
@@ -419,16 +447,38 @@ export default function App() {
           query.passengers.adults + query.passengers.children
         );
         setFlights(results);
-        
-        // Reset dynamic price range filter
         const maxPrice = results.reduce((max, f) => f.price > max ? f.price : max, 500);
         setFilters(f => ({ ...f, maxPrice, airlines: [] }));
-        setActiveSort('best');
-        setActiveTab('flights');
-      } else if (query.type === 'packages') {
-        const fromAirport = AIRPORTS.find(a => a.city === query.fromCity)?.code || 'ICN';
-        const toAirport = AIRPORTS.find(a => a.city === query.toCity)?.code || 'HND';
-        const flightResults = generateFlights(
+      }
+      setActiveSort('best');
+      setActiveTab('flights');
+      setSearching(false);
+    } else if (query.type === 'packages') {
+      const fromAirport = AIRPORTS.find(a => a.city === query.fromCity)?.code || 'ICN';
+      const toAirport = AIRPORTS.find(a => a.city === query.toCity)?.code || 'HND';
+
+      let flightResults = [];
+      try {
+        const response = await fetch(
+          `/api/flights/search?origin=${fromAirport}&destination=${toAirport}&departureDate=${query.departureDate}${
+            query.returnDate ? '&returnDate=' + query.returnDate : ''
+          }&currency=${currency}`
+        );
+        const result = await response.json();
+        if (result.success && result.data && result.data.length > 0) {
+          flightResults = result.data;
+        } else {
+          flightResults = generateFlights(
+            fromAirport,
+            toAirport,
+            query.departureDate,
+            query.returnDate,
+            query.cabinClass,
+            query.passengers.adults + query.passengers.children
+          );
+        }
+      } catch {
+        flightResults = generateFlights(
           fromAirport,
           toAirport,
           query.departureDate,
@@ -436,30 +486,37 @@ export default function App() {
           query.cabinClass,
           query.passengers.adults + query.passengers.children
         );
-        const hotelResults = generateHotels(query.toCity, query.hotelGuests, query.hotelRooms);
-        setFlights(flightResults);
-        setHotels(hotelResults);
+      }
 
-        const dep = new Date(query.departureDate);
-        const ret = new Date(query.returnDate || query.departureDate);
-        const diffTime = Math.abs(ret.getTime() - dep.getTime());
-        const nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-        const totalPass = query.passengers.adults + query.passengers.children + query.passengers.infants;
+      const hotelResults = generateHotels(query.toCity, query.hotelGuests, query.hotelRooms);
+      setFlights(flightResults);
+      setHotels(hotelResults);
 
-        const maxFlightPrice = flightResults.reduce((max, f) => f.price > max ? f.price : max, 500);
-        const maxHotelPrice = hotelResults.reduce((max, h) => h.pricePerNight > max ? h.pricePerNight : max, 300);
-        const maxCombinedPrice = Math.ceil((maxFlightPrice * totalPass + maxHotelPrice * nights * (query.hotelRooms || 1)) * 0.85);
+      const dep = new Date(query.departureDate);
+      const ret = new Date(query.returnDate || query.departureDate);
+      const diffTime = Math.abs(ret.getTime() - dep.getTime());
+      const nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      const totalPass = query.passengers.adults + query.passengers.children + query.passengers.infants;
 
-        setFilters(f => ({ ...f, maxPrice: maxCombinedPrice, hotelRating: 0, hotelAmenities: [], airlines: [] }));
-        setActiveSort('best');
-        setActiveTab('packages');
-      } else if (query.type === 'cars') {
+      const maxFlightPrice = flightResults.reduce((max, f) => f.price > max ? f.price : max, 500);
+      const maxHotelPrice = hotelResults.reduce((max, h) => h.pricePerNight > max ? h.pricePerNight : max, 300);
+      const maxCombinedPrice = Math.ceil((maxFlightPrice * totalPass + maxHotelPrice * nights * (query.hotelRooms || 1)) * 0.85);
+
+      setFilters(f => ({ ...f, maxPrice: maxCombinedPrice, hotelRating: 0, hotelAmenities: [], airlines: [] }));
+      setActiveSort('best');
+      setActiveTab('packages');
+      setSearching(false);
+    } else if (query.type === 'cars') {
+      setTimeout(() => {
         const carResults = generateCars(query.toCity);
         setCars(carResults);
         const maxPrice = carResults.reduce((max, c) => c.pricePerDay > max ? c.pricePerDay : max, 100);
         setFilters(f => ({ ...f, maxPrice, airlines: [] }));
         setActiveTab('cars');
-      } else {
+        setSearching(false);
+      }, 750);
+    } else {
+      setTimeout(() => {
         const results = generateHotels(query.toCity, query.hotelGuests, query.hotelRooms);
         setHotels(results);
         
@@ -467,9 +524,9 @@ export default function App() {
         setFilters(f => ({ ...f, maxPrice, hotelRating: 0, hotelAmenities: [] }));
         setActiveSort('best');
         setActiveTab('hotels');
-      }
-      setSearching(false);
-    }, 750);
+        setSearching(false);
+      }, 750);
+    }
   };
 
   // Filter & Sort Logic
@@ -702,91 +759,6 @@ export default function App() {
         
         {/* Search Engine Area */}
         <section className="space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-slate-200/50 pb-4">
-            {/* App Install Box positioned as the title header */}
-            <div className="relative rounded-2xl p-[1px] bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 shadow-md overflow-hidden shrink-0 w-full max-w-2xl" id="app-install-header-box">
-              <div className="bg-white rounded-[15px] p-4 flex flex-col sm:flex-row items-center gap-4 w-full">
-                <img
-                  src="/sharp_favicon_1782905090836.jpg"
-                  alt="YASKYTRIP App Logo"
-                  className="h-12 w-12 rounded-xl object-cover shadow-sm border border-slate-200 shrink-0"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="space-y-1 text-center sm:text-left flex-1">
-                  <div className="flex items-center justify-center sm:justify-start space-x-1.5">
-                    <span className="text-[9px] font-extrabold bg-red-50 text-red-500 px-1.5 py-0.5 rounded border border-red-100 uppercase tracking-wider flex items-center">
-                      <Sparkles className="h-2.5 w-2.5 mr-0.5" /> App Launch
-                    </span>
-                    <span className="text-[10px] text-blue-600 font-bold">{language === 'KO' ? '★ YASKYTRIP 공식 앱 출시' : '★ YASKYTRIP Official App'}</span>
-                  </div>
-                  <h3 className="text-base font-black text-slate-900">{language === 'KO' ? 'YASKYTRIP 공식 어플리케이션 출시!' : 'YASKYTRIP Official App is now live!'}</h3>
-                  <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-lg">
-                    {language === 'KO' 
-                      ? '실시간 초특가 푸시 알림과 가볍고 빠른 스마트 예약을 앱으로 더 안전하게 경험해 보세요.' 
-                      : 'Experience instant discount push alerts and lightning fast travel booking securely on your phone.'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setIsAppDownloadOpen(true)}
-                  className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-black px-4.5 py-2.5 rounded-xl shadow transition-all inline-flex items-center space-x-1.5 cursor-pointer active:scale-95 shrink-0 self-center sm:self-center"
-                  id="header-install-btn"
-                >
-                  <Download className="h-3 w-3 animate-bounce" />
-                  <span>{language === 'KO' ? '1초만에 앱 설치' : 'Install App'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* AI Smart Search Input Box */}
-            <div className="w-full md:w-auto flex flex-col items-stretch md:items-end max-w-md self-center md:self-auto">
-              <div 
-                onClick={() => setIsAiDrawerOpen(true)}
-                className="relative rounded-full p-[1.5px] bg-gradient-to-r from-orange-400 via-pink-400 to-red-500 shadow-[0_4px_20px_rgba(244,63,94,0.15)] hover:shadow-[0_4px_24px_rgba(244,63,94,0.25)] transition-all duration-300 w-full cursor-pointer animate-pulse"
-              >
-                <div className="flex items-center w-full bg-white rounded-full px-4 py-2 space-x-3">
-                  <Sparkles className="h-4 w-4 text-slate-800 fill-slate-800 shrink-0" />
-                  <input 
-                    type="text" 
-                    readOnly
-                    placeholder={language === 'KO' ? 'AI에게 여행 일정 및 맛집 물어보세요...' : 'Ask AI about travel plans & hot spots...'} 
-                    className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 focus:outline-none font-semibold cursor-pointer"
-                  />
-                  <button 
-                    type="button"
-                    className="text-xs bg-gradient-to-r from-orange-500 to-red-500 text-white font-black px-4 py-1.5 rounded-full hover:opacity-90 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
-                  >
-                    {language === 'KO' ? '물어보기' : 'Ask'}
-                  </button>
-                </div>
-              </div>
-              
-              {/* Quick tags for AI Search */}
-              <div className="flex flex-wrap gap-1.5 mt-2 justify-center md:justify-end">
-                <span className="text-[10px] text-slate-400 font-bold self-center mr-1">
-                  {language === 'KO' ? '💡 AI 빠른 질문:' : '💡 AI Quick Qs:'}
-                </span>
-                <button 
-                  onClick={() => setIsAiDrawerOpen(true)}
-                  className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
-                >
-                  {language === 'KO' ? '도쿄 3박4일 일정 ✈️' : 'Tokyo 3N4D itinerary ✈️'}
-                </button>
-                <button 
-                  onClick={() => setIsAiDrawerOpen(true)}
-                  className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
-                >
-                  {language === 'KO' ? '제주 감성 숙소 🏨' : 'Jeju emotional stays 🏨'}
-                </button>
-                <button 
-                  onClick={() => setIsAiDrawerOpen(true)}
-                  className="text-[10px] bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-bold px-2 py-0.5 rounded-full transition-all cursor-pointer"
-                >
-                  {language === 'KO' ? '오사카 맛집 탐방 🍜' : 'Osaka food tour 🍜'}
-                </button>
-              </div>
-            </div>
-          </div>
-
           <SearchForm 
             onSearch={handleSearch} 
             initialQuery={searchQuery} 

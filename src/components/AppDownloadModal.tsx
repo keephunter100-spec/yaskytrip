@@ -138,8 +138,8 @@ export default function AppDownloadModal({ isOpen, onClose, language }: AppDownl
               <div className="flex items-start space-x-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <h4 className="text-xs font-black text-slate-800">{isKo ? '앱 전용 10% 쿠폰' : 'App-Only 10% Coupon'}</h4>
-                  <p className="text-[10px] text-slate-500 leading-normal">{isKo ? '첫 예약 즉시 할인 적용' : 'Discount on first booking'}</p>
+                  <h4 className="text-xs font-black text-slate-800">{isKo ? '편리한 일정 관리' : 'Easy Trip Planning'}</h4>
+                  <p className="text-[10px] text-slate-500 leading-normal">{isKo ? '나만의 맞춤 일정과 예약 확인' : 'Organize all your bookings'}</p>
                 </div>
               </div>
             </div>

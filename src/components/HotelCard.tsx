@@ -283,7 +283,7 @@ const HotelCard: React.FC<HotelCardProps> = ({
                 </div>
 
                 <a
-                  href="https://kr.trip.com/?Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924"
+                  href={`https://tp.media/r?marker=744042&p=4180&u=${encodeURIComponent('https://kr.trip.com/')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300 font-bold text-[10px] py-1 px-2.5 rounded transition-all flex items-center justify-center space-x-1 cursor-pointer w-full sm:w-auto"

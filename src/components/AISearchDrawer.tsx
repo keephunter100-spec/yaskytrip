@@ -292,22 +292,9 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
     '서울 모든 공항 (SEL)',
     '인천국제공항 (ICN)',
     '김포국제공항 (GMP)',
-    '도쿄 하네다공항 (HND)',
-    '도쿄 나리타공항 (NRT)',
   ];
 
-  const handleSuggestionClick = (suggestion: string) => {
-    handleSubmit(suggestion);
-  };
-
-  const handleReaction = (msgId: string, type: 'like' | 'dislike') => {
-    setReactions(prev => ({
-      ...prev,
-      [msgId]: prev[msgId] === type ? undefined : type
-    }));
-  };
-
-  const handleSubmit = (textToSubmit?: string) => {
+  const handleSubmit = async (textToSubmit?: string) => {
     const finalQuery = textToSubmit || query;
     if (!finalQuery.trim()) return;
 
@@ -315,6 +302,12 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
     if (!searchHistory.includes(finalQuery)) {
       setSearchHistory(prev => [finalQuery, ...prev.slice(0, 9)]);
     }
+
+    // Capture history context
+    const chatHistory = messages.map(msg => ({
+      sender: msg.sender,
+      text: msg.text
+    }));
 
     // Add user message to state
     const userMsg: Message = {
@@ -329,8 +322,36 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
     // Call search submit to update the main page's flights/hotels search instantly!
     onSearchSubmit(finalQuery);
 
-    // Simulate AI response delay
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: finalQuery,
+          history: chatHistory
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const aiMsg: Message = {
+          id: Math.random().toString(),
+          sender: 'ai',
+          text: data.text,
+          suggestions: data.suggestions || [],
+          searchCard: data.searchCard || undefined
+        };
+        setMessages(prev => [...prev, aiMsg]);
+      } else {
+        throw new Error(data.text || "Failed response from server");
+      }
+    } catch (err) {
+      console.error("Failed to fetch real-time AI response, using smart local engine fallback:", err);
+
+      // Smart local engine fallback
       let aiText = '';
       let suggestions: string[] = [];
       let searchCard: Message['searchCard'] = undefined;
@@ -373,10 +394,7 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
           aiText = `어느 도시 또는 지역에서 호텔을 찾으시나요? 체크인과 체크아웃 날짜도 알려주시면 ${cleanPriceStr}의 호텔을 바로 찾아드릴 수 있습니다. 원하시는 호텔 등급이나 특별한 조건이 있으시면 함께 말씀해 주세요.`;
           suggestions = [
             `${cleanPriceStr}의 호텔 검색 in 서울 from 2026-07-01 to 2026-07-07`,
-            `${cleanPriceStr}의 호텔 검색 in 부산 from 2026-07-01 to 2026-07-07`,
-            `${cleanPriceStr}의 호텔 검색 in 도쿄 from 2026-07-01 to 2026-07-07`,
-            `${cleanPriceStr}의 호텔 검색 in 베이징 from 2026-07-01 to 2026-07-07`,
-            `${cleanPriceStr}의 호텔 검색 in 싱가포르 from 2026-07-01 to 2026-07-07`
+            `${cleanPriceStr}의 호텔 검색 in 부산 from 2026-07-01 to 2026-07-07`
           ];
         }
       } else if (lowercase.includes('항공') || lowercase.includes('비행') || lowercase.includes('flight') || lowercase.includes('직항') || lowercase.includes('편')) {
@@ -399,39 +417,15 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
           aiText = `어느 도시로 떠나시는 항공편을 찾으시나요? 출발지와 원하시는 일정을 함께 알려주시면 실시간 최저가 항공권을 바로 조회해 드리겠습니다.`;
           suggestions = [
             '도쿄행 최저가 항공권 검색',
-            '오사카행 이번 주말 직항편 검색',
-            '파리행 왕복 항공권 검색'
+            '오사카행 이번 주말 직항편 검색'
           ];
         }
       } else {
-        if (hasCity) {
-          const cityKoreanName = getKoreanCityName(parsed.toCity);
-          aiText = `네, ${cityKoreanName}(${parsed.toCity}) 여행 상품을 찾으시는군요!\n\nKAYAK에서 가장 저렴한 실시간 항공권과 추천 호텔을 한눈에 비교해 드릴 수 있습니다. 아래에서 항공권 또는 호텔 검색 버튼을 누르시거나 구체적인 일정을 입력해 주세요.`;
-          
-          searchCard = {
-            type: 'flights',
-            fromCity: parsed.fromCity,
-            toCity: parsed.toCity,
-            departureDate: parsed.departureDate,
-            returnDate: parsed.returnDate,
-            price: getRealisticPrice(parsed.toCity, 'flights'),
-            airlines: ['OZ', 'UA', 'KE'],
-            count: 720
-          };
-
-          suggestions = [
-            `${cityKoreanName}행 최저가 항공권 검색`,
-            `${cityKoreanName} 추천 호텔 검색`,
-            `${cityKoreanName} 럭셔리 패키지 상품 보기`
-          ];
-        } else {
-          aiText = `무엇이든 도와드릴 수 있습니다! 예를 들어 특정 가격대의 호텔을 검색하거나, 특정 도시의 인기 항공편을 조회하고 싶으시면 편하게 말씀해 주세요.`;
-          suggestions = [
-            '231,236원 이하 호텔 검색',
-            '다음 주말 오사카행 직항편',
-            'SUV 차량 렌트'
-          ];
-        }
+        aiText = `죄송합니다. AI 서비스 연결 상태가 고르지 않습니다만, KAYAK 검색 및 플래너 일정을 이용하실 수 있습니다. 무엇이든 질문해 주세요!`;
+        suggestions = [
+          '도쿄행 최저가 항공권 검색',
+          '추천 숙소 알아보기'
+        ];
       }
 
       const aiMsg: Message = {
@@ -443,8 +437,9 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
       };
 
       setMessages(prev => [...prev, aiMsg]);
+    } finally {
       setIsAiTyping(false);
-    }, 600);
+    }
   };
 
   const handleChatSuggestionClick = (suggestionText: string) => {
@@ -454,6 +449,17 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
 
   const handleClearHistory = () => {
     setSearchHistory([]);
+  };
+
+  const handleReaction = (msgId: string, type: 'like' | 'dislike') => {
+    setReactions(prev => ({
+      ...prev,
+      [msgId]: prev[msgId] === type ? undefined as any : type
+    }));
+  };
+
+  const handleSuggestionClick = (text: string) => {
+    handleSubmit(text);
   };
 
   return (

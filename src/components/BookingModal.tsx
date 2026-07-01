@@ -66,9 +66,7 @@ export default function BookingModal({
   const getFlightRealUrls = () => {
     const defaultList = [
       { name: 'Aviasales', logo: '✈️', url: 'https://www.aviasales.com/?marker=744042', desc: isKo ? '실시간 전세계 항공 최저가 비교' : 'Global Real-time Flight Search', color: 'bg-amber-500 hover:bg-amber-600' },
-      { name: 'Skyscanner', logo: '🌐', url: 'https://www.skyscanner.co.kr/', desc: isKo ? '글로벌 가격 비교 No.1' : 'No.1 Global Price Comparison', color: 'bg-emerald-500 hover:bg-emerald-600' },
-      { name: 'Google Flights', logo: '🔍', url: 'https://www.google.com/travel/flights', desc: isKo ? '구글 공식 항공 노선/가격 검색' : 'Google Official Route & Price Tool', color: 'bg-blue-600 hover:bg-blue-700' },
-      { name: 'Trip.com', logo: '💳', url: 'https://kr.trip.com/?Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924', desc: isKo ? '아시아 노선 및 카드사 특화 할인' : 'Asia Routes & Special Discounts', color: 'bg-sky-500 hover:bg-sky-600' },
+      { name: 'Trip.com', logo: '💳', url: `https://tp.media/r?marker=744042&p=4180&u=${encodeURIComponent('https://kr.trip.com/')}`, desc: isKo ? '아시아 노선 및 카드사 특화 할인' : 'Asia Routes & Special Discounts', color: 'bg-sky-500 hover:bg-sky-600' },
     ];
     if (!flight) return defaultList;
 
@@ -90,21 +88,12 @@ export default function BookingModal({
     
     const aviaUrl = `https://www.aviasales.com/search/${path}?marker=744042&locale=ko`;
     
-    // Skyscanner path: yyMMdd format
-    const ssDep = depDate.replace(/-/g, '').substring(2);
-    const ssRet = retDate ? '/' + retDate.replace(/-/g, '').substring(2) : '';
-    const skyUrl = `https://www.skyscanner.co.kr/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${ssDep}${ssRet}/?adultsv2=1&cabinclass=economy&locale=ko-KR&currency=KRW`;
-
-    // Google Flights
-    const googleUrl = `https://www.google.com/travel/flights?q=Flights%20to%20${destination}%20from%20${origin}%20on%20${depDate}${retDate ? '%20returning%20' + retDate : ''}`;
-
-    // Trip.com with user affiliate tracking
-    const tripUrl = `https://kr.trip.com/flights/show-flights-list?dcity=${origin}&acity=${destination}&ddate=${depDate}${retDate ? '&rdate=' + retDate : ''}&flighttype=${retDate ? 'rt' : 'ow'}&adult=1&class=y&Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924`;
+    // Trip.com with user affiliate tracking via Travelpayouts (tp.media)
+    const rawTripUrl = `https://kr.trip.com/flights/show-flights-list?dcity=${origin}&acity=${destination}&ddate=${depDate}${retDate ? '&rdate=' + retDate : ''}&flighttype=${retDate ? 'rt' : 'ow'}&adult=1&class=y`;
+    const tripUrl = `https://tp.media/r?marker=744042&p=4180&u=${encodeURIComponent(rawTripUrl)}`;
 
     return [
       { name: isKo ? 'Aviasales (추천)' : 'Aviasales (Recommended)', logo: '✈️', url: aviaUrl, desc: isKo ? '실시간 제휴 직항/경유 비교' : 'Live Direct & Transfer Flight Pricing', color: 'bg-amber-500 hover:bg-amber-600' },
-      { name: 'Skyscanner', logo: '🌐', url: skyUrl, desc: isKo ? '전 세계 인기 항공권 가격 비교' : 'Global Ticket Price Aggregator', color: 'bg-emerald-500 hover:bg-emerald-600' },
-      { name: 'Google Flights', logo: '🔍', url: googleUrl, desc: isKo ? '간편한 노선도 및 트렌드 예측' : 'Easy Flight Mapping & Pricing Forecast', color: 'bg-blue-600 hover:bg-blue-700' },
       { name: 'Trip.com', logo: '🟦', url: tripUrl, desc: isKo ? '원화 간편 결제 및 상시 프로모션' : 'Direct Billing & Constant Promotions', color: 'bg-sky-500 hover:bg-sky-600' },
     ];
   };
@@ -123,7 +112,8 @@ export default function BookingModal({
     const hlUrl = `https://hotellook.com/search?location=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&marker=744042&language=ko`;
     const agodaUrl = `https://www.agoda.com/ko-kr/search?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adults=1`;
     const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(location)}&checkin=${checkIn}&checkout=${checkOut}&group_adults=1`;
-    const tripHotelUrl = `https://kr.trip.com/hotels/list?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adult=1&Allianceid=8803698&SID=320679024&trip_sub1=&trip_sub3=D18387924`;
+    const rawTripHotelUrl = `https://kr.trip.com/hotels/list?city=${encodeURIComponent(location)}&checkIn=${checkIn}&checkOut=${checkOut}&adult=1`;
+    const tripHotelUrl = `https://tp.media/r?marker=744042&p=4180&u=${encodeURIComponent(rawTripHotelUrl)}`;
 
     return [
       { name: isKo ? 'Hotellook (추천)' : 'Hotellook (Recommended)', logo: '🏨', url: hlUrl, desc: isKo ? '전 세계 주요 사이트 최저가 요약' : 'Summarizes Best Rates Globally', color: 'bg-amber-500 hover:bg-amber-600' },
