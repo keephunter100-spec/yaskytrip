@@ -122,9 +122,6 @@ export default function TravelpayoutsWidget({ selectedLanguageCode = 'ko', type 
               <Sparkles className="h-3 w-3 animate-pulse" />
               <span>{isKo ? '실시간 연동 완료' : 'Live Integration'}</span>
             </span>
-            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 font-extrabold text-[10px] uppercase rounded-full tracking-wider">
-              Travelpayouts Widget
-            </span>
           </div>
           <h3 className="text-lg font-black text-slate-800 mt-2">
             {title}
