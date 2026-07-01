@@ -360,9 +360,6 @@ export default function App() {
         console.error('Error loading bookings from localStorage', e);
       }
     }
-
-    // Pre-populate initial results on mount so the page is not blank
-    handleSearch(searchQuery);
   }, []);
 
   // Update localStorage when bookings change
@@ -739,6 +736,7 @@ export default function App() {
           // Sync search query category if tabs clicked
           if (tab === 'flights' || tab === 'hotels' || tab === 'packages' || tab === 'cars') {
             setSearchQuery(q => ({ ...q, type: tab }));
+            setSearchTriggered(false);
           }
         }} 
         bookingCount={bookings.length} 
@@ -768,6 +766,7 @@ export default function App() {
               setActiveTab(tab);
               if (tab !== 'realtime') {
                 setSearchQuery(q => ({ ...q, type: tab }));
+                setSearchTriggered(false);
               }
             }}
           />
@@ -967,6 +966,10 @@ export default function App() {
                     ))}
                   </div>
                 )}
+              </div>
+            ) : !searchTriggered ? (
+              <div className="lg:col-span-12 space-y-6" id="initial-widget-panel">
+                <TravelpayoutsWidget selectedLanguageCode={selectedLanguageCode} />
               </div>
             ) : activeTab === 'realtime' ? (
               <div className="lg:col-span-12 space-y-6" id="realtime-panel">
