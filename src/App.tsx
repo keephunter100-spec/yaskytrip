@@ -967,13 +967,13 @@ export default function App() {
                   </div>
                 )}
               </div>
-            ) : !searchTriggered ? (
-              <div className="lg:col-span-12 space-y-6" id="initial-widget-panel">
-                <TravelpayoutsWidget selectedLanguageCode={selectedLanguageCode} />
-              </div>
             ) : activeTab === 'realtime' ? (
               <div className="lg:col-span-12 space-y-6" id="realtime-panel">
-                <TravelpayoutsWidget selectedLanguageCode={selectedLanguageCode} />
+                <TravelpayoutsWidget selectedLanguageCode={selectedLanguageCode} type="calendar" />
+              </div>
+            ) : !searchTriggered ? (
+              <div className="lg:col-span-12 space-y-6" id="initial-widget-panel">
+                <TravelpayoutsWidget selectedLanguageCode={selectedLanguageCode} type="map" />
               </div>
             ) : (
               // FLIGHTS & HOTELS LISTINGS PANEL
