@@ -30,7 +30,7 @@ interface ParsedQuery {
   returnDate: string;
 }
 
-const parseAISemanticQuery = (text: string): ParsedQuery => {
+const parseAISemanticQuery = (text: string, defaultFromCity: string = 'Seoul'): ParsedQuery => {
   const lowercase = text.toLowerCase().trim();
   
   // Default values
@@ -42,7 +42,7 @@ const parseAISemanticQuery = (text: string): ParsedQuery => {
   
   let type: 'flights' | 'hotels' | 'packages' = 'flights';
   let toCity = 'New York';
-  let fromCity = 'Seoul';
+  let fromCity = defaultFromCity;
   let departureDate = todayStr;
   let returnDate = nextWeekStr;
 
@@ -68,8 +68,8 @@ const parseAISemanticQuery = (text: string): ParsedQuery => {
     '호놀룰루': 'Honolulu',
     '후쿠오카': 'Tokyo',
     '서울': 'Seoul',
-    '부산': 'Seoul',
-    '베이징': 'Singapore',
+    '부산': 'Busan',
+    '베이징': 'Beijing',
     'tokyo': 'Tokyo',
     'osaka': 'Tokyo',
     'new york': 'New York',
@@ -80,7 +80,9 @@ const parseAISemanticQuery = (text: string): ParsedQuery => {
     'singapore': 'Singapore',
     'sydney': 'Sydney',
     'honolulu': 'Honolulu',
-    'seoul': 'Seoul'
+    'seoul': 'Seoul',
+    'busan': 'Busan',
+    'beijing': 'Beijing'
   };
 
   for (const [key, val] of Object.entries(cityMap)) {
@@ -90,8 +92,8 @@ const parseAISemanticQuery = (text: string): ParsedQuery => {
     }
   }
 
-  // Ensure toCity is not same as fromCity
-  if (toCity === 'Seoul' && fromCity === 'Seoul') {
+  // Ensure toCity is not same as fromCity for flights and packages
+  if ((type === 'flights' || type === 'packages') && toCity === 'Seoul' && fromCity === 'Seoul') {
     toCity = 'Tokyo';
   }
 
@@ -376,7 +378,7 @@ export default function App() {
     setAiAnalyzing(true);
     
     setTimeout(() => {
-      const parsed = parseAISemanticQuery(queryToParse);
+      const parsed = parseAISemanticQuery(queryToParse, searchQuery.fromCity);
       const updatedQuery: SearchQuery = {
         type: parsed.type,
         tripType: 'round-trip',

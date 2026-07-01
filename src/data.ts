@@ -31,6 +31,8 @@ export const AIRPORTS: Airport[] = [
   { code: 'SIN', name: 'Changi Airport', city: 'Singapore', country: 'Singapore' },
   { code: 'SYD', name: 'Sydney Kingsford Smith Airport', city: 'Sydney', country: 'Australia' },
   { code: 'HNL', name: 'Daniel K. Inouye International Airport', city: 'Honolulu', country: 'United States' },
+  { code: 'PUS', name: 'Gimhae International Airport', city: 'Busan', country: 'South Korea' },
+  { code: 'PEK', name: 'Beijing Capital International Airport', city: 'Beijing', country: 'China' },
 ];
 
 export const CITIES: City[] = [
@@ -89,6 +91,20 @@ export const CITIES: City[] = [
     country: 'United States',
     airports: [AIRPORTS[13]],
     imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'BUSAN',
+    name: 'Busan',
+    country: 'South Korea',
+    airports: [AIRPORTS[14]],
+    imageUrl: 'https://images.unsplash.com/photo-1599639668326-c9a1c070f950?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'BEIJING',
+    name: 'Beijing',
+    country: 'China',
+    airports: [AIRPORTS[15]],
+    imageUrl: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=800&q=80',
   },
 ];
 
@@ -392,6 +408,10 @@ export function generateHotels(
       address = address.replace('Downtown Core', 'Westminster, London').replace('Arts District', 'Soho, London');
     } else if (city.id === 'PARIS') {
       address = address.replace('Downtown Core', 'Champs-Élysées, Paris').replace('Arts District', 'Le Marais, Paris');
+    } else if (city.id === 'BUSAN') {
+      address = address.replace('Downtown Core', 'Haeundae, Busan').replace('Arts District', 'Seomyeon, Busan');
+    } else if (city.id === 'BEIJING') {
+      address = address.replace('Downtown Core', 'Wangfujing, Beijing').replace('Arts District', 'Chaoyang, Beijing');
     }
 
     // Determine name, score, reviews, and ratings
@@ -438,6 +458,10 @@ export function generateHotels(
       baseLat = -33.8688; baseLng = 151.2093;
     } else if (city.id === 'HONOLULU') {
       baseLat = 21.3069; baseLng = -157.8583;
+    } else if (city.id === 'BUSAN') {
+      baseLat = 35.1796; baseLng = 129.0756;
+    } else if (city.id === 'BEIJING') {
+      baseLat = 39.9042; baseLng = 116.4074;
     }
 
     // Generate a deterministic offset for this hotel index

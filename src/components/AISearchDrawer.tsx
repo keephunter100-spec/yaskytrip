@@ -89,6 +89,8 @@ const getKoreanCityName = (city: string) => {
     case 'Sydney': return '시드니';
     case 'Honolulu': return '호놀룰루';
     case 'Seoul': return '서울';
+    case 'Busan': return '부산';
+    case 'Beijing': return '베이징';
     default: return city;
   }
 };
@@ -119,7 +121,7 @@ const getRealisticPrice = (city: string, type: 'flights' | 'hotels') => {
   }
 };
 
-function parseQuery(text: string) {
+function parseQuery(text: string, defaultFromCity: string = 'Seoul') {
   const lowercase = text.toLowerCase().trim();
   
   const today = new Date();
@@ -130,7 +132,7 @@ function parseQuery(text: string) {
   
   let type: 'flights' | 'hotels' | 'packages' = 'flights';
   let toCity = 'New York';
-  let fromCity = 'Seoul';
+  let fromCity = defaultFromCity;
   let departureDate = todayStr;
   let returnDate = nextWeekStr;
   
@@ -154,8 +156,8 @@ function parseQuery(text: string) {
     '호놀룰루': 'Honolulu',
     '후쿠오카': 'Tokyo',
     '서울': 'Seoul',
-    '부산': 'Seoul',
-    '베이징': 'Singapore',
+    '부산': 'Busan',
+    '베이징': 'Beijing',
     'tokyo': 'Tokyo',
     'osaka': 'Tokyo',
     'new york': 'New York',
@@ -166,7 +168,9 @@ function parseQuery(text: string) {
     'singapore': 'Singapore',
     'sydney': 'Sydney',
     'honolulu': 'Honolulu',
-    'seoul': 'Seoul'
+    'seoul': 'Seoul',
+    'busan': 'Busan',
+    'beijing': 'Beijing'
   };
 
   for (const [key, val] of Object.entries(cityMap)) {
@@ -251,6 +255,11 @@ function parseQuery(text: string) {
     }
   }
   
+  // Ensure toCity is not same as fromCity for flights and packages
+  if ((type === 'flights' || type === 'packages') && toCity === 'Seoul' && fromCity === 'Seoul') {
+    toCity = 'Tokyo';
+  }
+  
   return { type, toCity, fromCity, departureDate, returnDate };
 }
 
@@ -327,7 +336,11 @@ export default function AISearchDrawer({ isOpen, onClose, onSearchSubmit }: AISe
       let searchCard: Message['searchCard'] = undefined;
 
       const lowercase = finalQuery.toLowerCase();
-      const parsed = parseQuery(finalQuery);
+      const getCityFromAirport = (airportName: string) => {
+        if (airportName.includes('도쿄')) return 'Tokyo';
+        return 'Seoul';
+      };
+      const parsed = parseQuery(finalQuery, getCityFromAirport(currentAirport));
 
       // Check if the query contains any key from our cityMap
       const cityMapKeys = [
