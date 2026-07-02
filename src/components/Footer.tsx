@@ -65,7 +65,7 @@ export default function Footer({ onShowRefundPolicy, onShowPrivacyPolicy, select
               <li>
                 <button 
                   onClick={onShowPrivacyPolicy} 
-                  className="hover:text-white transition-colors cursor-pointer text-left focus:outline-hidden font-bold text-emerald-500"
+                  className="hover:text-white transition-colors cursor-pointer text-left focus:outline-hidden"
                   id="footer-privacy-policy-btn"
                 >
                   {isKo ? '개인정보보호정책' : 'Privacy Policy'}

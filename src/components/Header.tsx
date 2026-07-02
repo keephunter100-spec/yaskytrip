@@ -18,6 +18,7 @@ interface HeaderProps {
   selectedLanguageCode: string;
   onOpenLanguageModal: () => void;
   onOpenAppDownload?: () => void;
+  onLogoClick?: () => void;
 }
 
 export default function Header({ 
@@ -33,7 +34,8 @@ export default function Header({
   setLanguage,
   selectedLanguageCode,
   onOpenLanguageModal,
-  onOpenAppDownload
+  onOpenAppDownload,
+  onLogoClick
 }: HeaderProps) {
   // Translations
   const t = {
@@ -56,7 +58,13 @@ export default function Header({
           {/* Logo */}
           <div className="flex items-center space-x-8">
             <button 
-              onClick={() => setActiveTab('flights')} 
+              onClick={() => {
+                if (onLogoClick) {
+                  onLogoClick();
+                } else {
+                  setActiveTab('flights');
+                }
+              }} 
               className="flex items-center space-x-2.5 text-2xl transition-all"
               id="logo-btn"
             >

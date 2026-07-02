@@ -739,6 +739,11 @@ export default function App() {
             setSearchTriggered(false);
           }
         }} 
+        onLogoClick={() => {
+          setActiveTab('flights');
+          setSearchQuery(q => ({ ...q, type: 'flights' }));
+          setSearchTriggered(false);
+        }}
         bookingCount={bookings.length} 
         currency={currency}
         setCurrency={handleCurrencyChange}

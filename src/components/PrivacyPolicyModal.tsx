@@ -148,7 +148,6 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: PrivacyPolicyMod
                 </p>
                 <div className="pl-3 bg-slate-50 border border-slate-100 p-3 rounded-xl space-y-1 text-[11px] text-slate-700">
                   <p><b>개인정보 보호책임 부서:</b> 야스카이트립 정보보안 규제대응팀 (Security & Privacy Compliance)</p>
-                  <p><b>책임자 연락 이메일:</b> <a href="mailto:privacy@yaskytrip.com" className="text-emerald-600 font-bold hover:underline">privacy@yaskytrip.com</a></p>
                   <p><b>시행일자:</b> 2026년 7월 1일 개정</p>
                 </div>
               </div>
