@@ -93,12 +93,9 @@ export default function Footer({ onShowRefundPolicy, onShowPrivacyPolicy, select
 
 
 
-        <div className="mt-8 pt-8 border-t border-gray-900 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600 select-none">
-          <p className="text-left font-sans text-[10px] leading-normal text-slate-600">
-            © 2026 YASKYTRIP Inc. This application is a flight and hotel search engine designed with Swiss-Modern high-density typography guidelines. All flights, hotels, and transactions are simulated.
-          </p>
-          <p className="text-left md:text-right font-sans text-[10px] leading-normal text-slate-600">
-            Made with 💙 using React, Tailwind CSS and Motion
+        <div className="mt-8 pt-8 border-t border-gray-900 flex justify-center text-xs text-gray-600 select-none">
+          <p className="font-sans text-[10px] leading-normal text-slate-600 text-center">
+            © 2026 YASKYTRIP Inc.
           </p>
         </div>
       </div>
