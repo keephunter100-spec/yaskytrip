@@ -39,6 +39,21 @@
   h1, h2, h3, h4, h5, h6 {
     font-weight: 400 !important;
   }
+
+  /* Make the native date picker indicator fill the entire input area */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
+    z-index: 20;
+  }
 }
 
 

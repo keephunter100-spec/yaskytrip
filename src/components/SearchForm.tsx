@@ -153,6 +153,8 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
   const toRef = useRef<HTMLDivElement>(null);
   const passengerRef = useRef<HTMLDivElement>(null);
   const classRef = useRef<HTMLDivElement>(null);
+  const departureInputRef = useRef<HTMLInputElement>(null);
+  const returnInputRef = useRef<HTMLInputElement>(null);
 
   // For accommodations search in flight tab (aesthetic checkbox)
   const [searchHotelTogether, setSearchHotelTogether] = useState(true);
@@ -689,12 +691,30 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
           {/* Row 1, Column 2 (Right top): 가는 날 / 오는 날 or 체크인 / 체크아웃 */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm grid grid-cols-2 divide-x divide-slate-150 overflow-hidden h-[76px]">
             {/* Left side: Departure/Check-in Date */}
-            <div className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group">
+            <div 
+              onClick={() => {
+                try {
+                  departureInputRef.current?.showPicker();
+                } catch (err) {
+                  console.warn("showPicker failed:", err);
+                }
+              }}
+              className="relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group"
+            >
               <input
+                ref={departureInputRef}
                 type="date"
                 min={today}
                 value={departureDate}
                 onChange={(e) => setDepartureDate(e.target.value)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {
+                    console.warn("showPicker is not supported:", err);
+                  }
+                }}
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
               />
               <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
@@ -711,15 +731,34 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
             </div>
 
             {/* Right side: Return/Check-out Date */}
-            <div className={`relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group ${
-              activeType === 'flights' && tripType === 'one-way' ? 'opacity-35 pointer-events-none' : ''
-            }`}>
+            <div 
+              onClick={() => {
+                if (activeType === 'flights' && tripType === 'one-way') return;
+                try {
+                  returnInputRef.current?.showPicker();
+                } catch (err) {
+                  console.warn("showPicker failed:", err);
+                }
+              }}
+              className={`relative p-4 flex items-center space-x-3 hover:bg-slate-50/70 transition-colors cursor-pointer group ${
+                activeType === 'flights' && tripType === 'one-way' ? 'opacity-35 pointer-events-none' : ''
+              }`}
+            >
               <input
+                ref={returnInputRef}
                 type="date"
                 min={departureDate || today}
                 disabled={activeType === 'flights' && tripType === 'one-way'}
                 value={returnDate}
                 onChange={(e) => setReturnDate(e.target.value)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    e.currentTarget.showPicker();
+                  } catch (err) {
+                    console.warn("showPicker is not supported:", err);
+                  }
+                }}
                 className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
               />
               <div className="text-slate-400 group-hover:text-slate-600 transition-colors shrink-0">
