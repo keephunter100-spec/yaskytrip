@@ -306,7 +306,7 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-slate-950 text-white rounded-3xl border border-white/10 shadow-2xl p-4 sm:p-8 shrink-0 relative overflow-hidden" id="search-container">
+    <div className="bg-gradient-to-br from-blue-700 via-indigo-900 to-slate-950 text-white rounded-3xl border border-white/10 shadow-2xl p-4 sm:p-8 shrink-0 relative overflow-visible z-30" id="search-container">
       
       {/* Decorative ambient background lights */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -405,45 +405,6 @@ export default function SearchForm({ onSearch, initialQuery, language = 'KO', se
                 <option value="one-way" className="text-slate-900 font-bold">{t.oneWay}</option>
               </select>
               <ChevronDown className="absolute right-3.5 top-3.5 h-3.5 w-3.5 text-white/70 pointer-events-none" />
-            </div>
-
-            {/* Cabin Class Dropdown */}
-            <div className="relative" ref={classRef}>
-              <button
-                type="button"
-                onClick={() => setShowClassDropdown(!showClassDropdown)}
-                className="flex items-center space-x-2 bg-white/10 border border-white/10 rounded-xl text-xs font-extrabold text-white px-4 py-2.5 hover:bg-white/15 cursor-pointer backdrop-blur-md"
-              >
-                <span>{getCabinClassLabel(cabinClass)}</span>
-                <ChevronDown className="h-3.5 w-3.5 text-white/70" />
-              </button>
-
-              <AnimatePresence>
-                {showClassDropdown && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 5 }}
-                    className="absolute right-0 mt-2 w-44 bg-white border border-slate-100 rounded-xl shadow-2xl z-50 p-1"
-                  >
-                    {(['economy', 'premium', 'business', 'first'] as const).map((cls) => (
-                      <button
-                        key={cls}
-                        type="button"
-                        onClick={() => {
-                          setCabinClass(cls);
-                          setShowClassDropdown(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-xs rounded-lg transition-colors cursor-pointer ${
-                          cabinClass === cls ? 'bg-blue-50 text-blue-700 font-black' : 'text-slate-700 hover:bg-slate-50 font-bold'
-                        }`}
-                      >
-                        {getCabinClassLabel(cls)}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           </div>
         )}

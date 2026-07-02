@@ -149,7 +149,7 @@ export default function TravelpayoutsWidget({ selectedLanguageCode = 'ko', type 
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 z-10 space-y-3 rounded-2xl">
             <div className="h-8 w-8 border-3 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
             <p className="text-[11px] text-slate-400 font-bold">
-              {isKo ? 'Travelpayouts 실시간 데이터를 받아오고 있습니다...' : 'Loading Travelpayouts live data...'}
+              {isKo ? '실시간 데이터를 받아오고 있습니다...' : 'Loading live data...'}
             </p>
           </div>
         )}
